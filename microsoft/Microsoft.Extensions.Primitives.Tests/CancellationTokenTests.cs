@@ -22,5 +22,11 @@ namespace Microsoft.Extensions.Primitives.Tests
 
             tokenSource.Cancel();
         }
+
+        [Fact]
+        public void RouteTest()
+        {
+            
+        }
     }
 }

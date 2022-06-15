@@ -73,7 +73,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdentityModel.Logging", "Id
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IdentityModel.JsonWebTokens", "..\..\azure-activedirectory-identitymodel-extensions-for-dotnet-6.7.1\azure-activedirectory-identitymodel-extensions-for-dotnet-6.7.1\src\Microsoft.IdentityModel.JsonWebTokens\Microsoft.IdentityModel.JsonWebTokens.csproj", "{F778E164-472B-4743-9091-DDCBBFC0ACB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityModel.JsonWebTokens", "IdentityModel.JsonWebTokens\IdentityModel.JsonWebTokens.csproj", "{A20FB5D8-4E2B-4D5C-9616-A998BEA83C5B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdentityModel.JsonWebTokens", "IdentityModel.JsonWebTokens\IdentityModel.JsonWebTokens.csproj", "{A20FB5D8-4E2B-4D5C-9616-A998BEA83C5B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ms.Oidc.Tests", "Ms.Oidc.Tests\Ms.Oidc.Tests.csproj", "{B72BEC0D-69B7-40F2-BA33-17A5C68FA04B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "routing", "routing", "{8AAD6019-EACA-4FF4-A936-9F94CC8296F9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ms.Routing.Tests", "Ms.Routing.Tests\Ms.Routing.Tests.csproj", "{926D1512-63FC-4C02-85AD-51280704DD2D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "winform", "winform", "{053AE76D-1982-4F16-A074-856316663534}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ms.Winform.Tests", "Ms.Winform.Tests\Ms.Winform.Tests.csproj", "{7800822E-603A-4580-872E-B2FE4CD765FD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -205,6 +215,18 @@ Global
 		{A20FB5D8-4E2B-4D5C-9616-A998BEA83C5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A20FB5D8-4E2B-4D5C-9616-A998BEA83C5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A20FB5D8-4E2B-4D5C-9616-A998BEA83C5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B72BEC0D-69B7-40F2-BA33-17A5C68FA04B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B72BEC0D-69B7-40F2-BA33-17A5C68FA04B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B72BEC0D-69B7-40F2-BA33-17A5C68FA04B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B72BEC0D-69B7-40F2-BA33-17A5C68FA04B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{926D1512-63FC-4C02-85AD-51280704DD2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{926D1512-63FC-4C02-85AD-51280704DD2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{926D1512-63FC-4C02-85AD-51280704DD2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{926D1512-63FC-4C02-85AD-51280704DD2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7800822E-603A-4580-872E-B2FE4CD765FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7800822E-603A-4580-872E-B2FE4CD765FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7800822E-603A-4580-872E-B2FE4CD765FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7800822E-603A-4580-872E-B2FE4CD765FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -240,6 +262,9 @@ Global
 		{2D4E2EB5-B86F-4819-B2BB-0BEEE473E174} = {E3ADB7A8-77AC-4382-9582-9A02A3CCD80D}
 		{F778E164-472B-4743-9091-DDCBBFC0ACB1} = {711AAFB9-11F2-4C7A-9599-0281C1157891}
 		{A20FB5D8-4E2B-4D5C-9616-A998BEA83C5B} = {E3ADB7A8-77AC-4382-9582-9A02A3CCD80D}
+		{B72BEC0D-69B7-40F2-BA33-17A5C68FA04B} = {E3ADB7A8-77AC-4382-9582-9A02A3CCD80D}
+		{926D1512-63FC-4C02-85AD-51280704DD2D} = {8AAD6019-EACA-4FF4-A936-9F94CC8296F9}
+		{7800822E-603A-4580-872E-B2FE4CD765FD} = {053AE76D-1982-4F16-A074-856316663534}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {20ADF333-C253-4017-88E2-83D01D6BAAA2}

@@ -4,8 +4,11 @@ using IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -13,6 +16,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -26,6 +31,8 @@ namespace Ms.AspNetCore.Authentication.OpenIdConnect
     {
         protected HtmlEncoder HtmlEncoder { get; }
         private OpenIdConnectConfiguration _configuration;
+        private const string NonceProperty = "N";
+        private const string HeaderValueEpocDate = "Thu, 01 Jan 1970 00:00:00 GMT";
 
         public OpenIdConnectHandler(IOptionsMonitor<OpenIdConnectOptions> options, ILoggerFactory logger, HtmlEncoder htmlEncoder, UrlEncoder encoder, ISystemClock clock)
     : base(options, logger, encoder, clock)
@@ -331,6 +338,171 @@ namespace Ms.AspNetCore.Authentication.OpenIdConnect
 
                 return HandleRequestResult.Fail(exception, properties);
             }
+        }
+
+        protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
+        {
+            await HandleChallengeAsyncInternal(properties);
+            var location = Context.Response.Headers[HeaderNames.Location];
+            if (location == StringValues.Empty)
+            {
+                location = "(not set)";
+            }
+            var cookie = Context.Response.Headers[HeaderNames.SetCookie];
+            if (cookie == StringValues.Empty)
+            {
+                cookie = "(not set)";
+            }
+            Logger.HandleChallenge(location, cookie);
+        }
+
+        private async Task HandleChallengeAsyncInternal(AuthenticationProperties properties)
+        {
+            Logger.EnteringOpenIdAuthenticationHandlerHandleUnauthorizedAsync(GetType().FullName);
+
+            // order for local RedirectUri
+            // 1. challenge.Properties.RedirectUri
+            // 2. CurrentUri if RedirectUri is not set)
+            if (string.IsNullOrEmpty(properties.RedirectUri))
+            {
+                properties.RedirectUri = OriginalPathBase + OriginalPath + Request.QueryString;
+            }
+            Logger.PostAuthenticationLocalRedirect(properties.RedirectUri);
+
+            if (_configuration == null && Options.ConfigurationManager != null)
+            {
+                _configuration = await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
+            }
+
+            var message = new OpenIdConnectMessage
+            {
+                ClientId = Options.ClientId,
+                EnableTelemetryParameters = !Options.DisableTelemetry,
+                IssuerAddress = _configuration?.AuthorizationEndpoint ?? string.Empty,
+                RedirectUri = BuildRedirectUri(Options.CallbackPath),
+                Resource = Options.Resource,
+                ResponseType = Options.ResponseType,
+                Prompt = properties.GetParameter<string>(OpenIdConnectParameterNames.Prompt) ?? Options.Prompt,
+                Scope = string.Join(" ", properties.GetParameter<ICollection<string>>(OpenIdConnectParameterNames.Scope) ?? Options.Scope),
+            };
+
+            // https://tools.ietf.org/html/rfc7636
+            if (Options.UsePkce && Options.ResponseType == OpenIdConnectResponseType.Code)
+            {
+                var bytes = new byte[32];
+                RandomNumberGenerator.Fill(bytes);
+                var codeVerifier = Microsoft.AspNetCore.WebUtilities.Base64UrlTextEncoder.Encode(bytes);
+
+                // Store this for use during the code redemption. See RunAuthorizationCodeReceivedEventAsync.
+                properties.Items.Add(OAuthConstants.CodeVerifierKey, codeVerifier);
+
+                var challengeBytes = SHA256.HashData(Encoding.UTF8.GetBytes(codeVerifier));
+                var codeChallenge = WebEncoders.Base64UrlEncode(challengeBytes);
+
+                message.Parameters.Add(OAuthConstants.CodeChallengeKey, codeChallenge);
+                message.Parameters.Add(OAuthConstants.CodeChallengeMethodKey, OAuthConstants.CodeChallengeMethodS256);
+            }
+
+            // Add the 'max_age' parameter to the authentication request if MaxAge is not null.
+            // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
+            var maxAge = properties.GetParameter<TimeSpan?>(OpenIdConnectParameterNames.MaxAge) ?? Options.MaxAge;
+            if (maxAge.HasValue)
+            {
+                message.MaxAge = Convert.ToInt64(Math.Floor((maxAge.Value).TotalSeconds))
+                    .ToString(CultureInfo.InvariantCulture);
+            }
+
+            // Omitting the response_mode parameter when it already corresponds to the default
+            // response_mode used for the specified response_type is recommended by the specifications.
+            // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#ResponseModes
+            if (!string.Equals(Options.ResponseType, OpenIdConnectResponseType.Code, StringComparison.Ordinal) ||
+                !string.Equals(Options.ResponseMode, OpenIdConnectResponseMode.Query, StringComparison.Ordinal))
+            {
+                message.ResponseMode = Options.ResponseMode;
+            }
+
+            if (Options.ProtocolValidator.RequireNonce)
+            {
+                message.Nonce = Options.ProtocolValidator.GenerateNonce();
+                WriteNonceCookie(message.Nonce);
+            }
+
+            GenerateCorrelationId(properties);
+
+            var redirectContext = new RedirectContext(Context, Scheme, Options, properties)
+            {
+                ProtocolMessage = message
+            };
+
+            await Events.RedirectToIdentityProvider(redirectContext);
+            if (redirectContext.Handled)
+            {
+                Logger.RedirectToIdentityProviderHandledResponse();
+                return;
+            }
+
+            message = redirectContext.ProtocolMessage;
+
+            if (!string.IsNullOrEmpty(message.State))
+            {
+                properties.Items[OpenIdConnectDefaults.UserstatePropertiesKey] = message.State;
+            }
+
+            // When redeeming a 'code' for an AccessToken, this value is needed
+            properties.Items.Add(OpenIdConnectDefaults.RedirectUriForCodePropertiesKey, message.RedirectUri);
+
+            message.State = Options.StateDataFormat.Protect(properties);
+
+            if (string.IsNullOrEmpty(message.IssuerAddress))
+            {
+                throw new InvalidOperationException(
+                    "Cannot redirect to the authorization endpoint, the configuration may be missing or invalid.");
+            }
+
+            if (Options.AuthenticationMethod == OpenIdConnectRedirectBehavior.RedirectGet)
+            {
+                var redirectUri = message.CreateAuthenticationRequestUrl();
+                if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
+                {
+                    Logger.InvalidAuthenticationRequestUrl(redirectUri);
+                }
+
+                Response.Redirect(redirectUri);
+                return;
+            }
+            else if (Options.AuthenticationMethod == OpenIdConnectRedirectBehavior.FormPost)
+            {
+                var content = message.BuildFormPost();
+                var buffer = Encoding.UTF8.GetBytes(content);
+
+                Response.ContentLength = buffer.Length;
+                Response.ContentType = "text/html;charset=UTF-8";
+
+                // Emit Cache-Control=no-cache to prevent client caching.
+                Response.Headers[HeaderNames.CacheControl] = "no-cache, no-store";
+                Response.Headers[HeaderNames.Pragma] = "no-cache";
+                Response.Headers[HeaderNames.Expires] = HeaderValueEpocDate;
+
+                await Response.Body.WriteAsync(buffer, 0, buffer.Length);
+                return;
+            }
+
+            throw new NotImplementedException($"An unsupported authentication method has been configured: {Options.AuthenticationMethod}");
+        }
+
+        private void WriteNonceCookie(string nonce)
+        {
+            if (string.IsNullOrEmpty(nonce))
+            {
+                throw new ArgumentNullException(nameof(nonce));
+            }
+
+            var cookieOptions = Options.NonceCookie.Build(Context, Clock.UtcNow);
+
+            Response.Cookies.Append(
+                Options.NonceCookie.Name + Options.StringDataFormat.Protect(nonce),
+                NonceProperty,
+                cookieOptions);
         }
 
         private AuthenticationProperties ReadPropertiesAndClearState(OpenIdConnectMessage message)

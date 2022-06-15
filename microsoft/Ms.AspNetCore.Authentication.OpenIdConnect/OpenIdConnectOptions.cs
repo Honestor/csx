@@ -76,6 +76,24 @@ namespace Ms.AspNetCore.Authentication.OpenIdConnect
         /// </summary>
         public ISecurityTokenValidator SecurityTokenValidator { get; set; }
 
+        /// <summary>
+        /// 设置Resource
+        /// </summary>
+        public string Resource { get; set; }
+
+        public TimeSpan? MaxAge { get; set; }
+
+        public string Prompt { get; set; }
+
+        public string ResponseMode { get; set; } = OpenIdConnectResponseMode.FormPost;
+
+        public OpenIdConnectRedirectBehavior AuthenticationMethod { get; set; } = OpenIdConnectRedirectBehavior.RedirectGet;
+
+        /// <summary>
+        /// Pkce模式
+        /// </summary>
+        public bool UsePkce { get; set; } = true;
+
         public ICollection<string> Scope { get; } = new HashSet<string>();
 
         public ClaimActionCollection ClaimActions { get; } = new ClaimActionCollection();
@@ -84,6 +102,8 @@ namespace Ms.AspNetCore.Authentication.OpenIdConnect
         /// Gets or sets the 'client_secret'.
         /// </summary>
         public string ClientSecret { get; set; }
+
+        public string ResponseType { get; set; } = OpenIdConnectResponseType.IdToken;
 
         /// <summary>
         /// 协议校验

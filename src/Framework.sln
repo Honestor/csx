@@ -181,6 +181,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.AspNetCore.Signal
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.AspNetCore.SignalR.Tests", "module\Framework.AspNetCore.SignalR.Tests\Framework.AspNetCore.SignalR.Tests.csproj", "{91292C6A-626E-495D-8C71-FC375BAEB6DB}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Data.Oralce", "Framework.Data.Oralce\Framework.Data.Oralce.csproj", "{F68EF963-F542-42F1-BEA2-8FDD09C791BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Framework.Data.Oralce.Tests", "test\Framework.Data.Oralce.Tests\Framework.Data.Oralce.Tests.csproj", "{82B88849-9990-4299-AD96-D22DE1C5404E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -827,6 +831,22 @@ Global
 		{91292C6A-626E-495D-8C71-FC375BAEB6DB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{91292C6A-626E-495D-8C71-FC375BAEB6DB}.Release|x86.ActiveCfg = Release|Any CPU
 		{91292C6A-626E-495D-8C71-FC375BAEB6DB}.Release|x86.Build.0 = Release|Any CPU
+		{F68EF963-F542-42F1-BEA2-8FDD09C791BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F68EF963-F542-42F1-BEA2-8FDD09C791BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F68EF963-F542-42F1-BEA2-8FDD09C791BF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F68EF963-F542-42F1-BEA2-8FDD09C791BF}.Debug|x86.Build.0 = Debug|Any CPU
+		{F68EF963-F542-42F1-BEA2-8FDD09C791BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F68EF963-F542-42F1-BEA2-8FDD09C791BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F68EF963-F542-42F1-BEA2-8FDD09C791BF}.Release|x86.ActiveCfg = Release|Any CPU
+		{F68EF963-F542-42F1-BEA2-8FDD09C791BF}.Release|x86.Build.0 = Release|Any CPU
+		{82B88849-9990-4299-AD96-D22DE1C5404E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82B88849-9990-4299-AD96-D22DE1C5404E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82B88849-9990-4299-AD96-D22DE1C5404E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{82B88849-9990-4299-AD96-D22DE1C5404E}.Debug|x86.Build.0 = Debug|Any CPU
+		{82B88849-9990-4299-AD96-D22DE1C5404E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82B88849-9990-4299-AD96-D22DE1C5404E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82B88849-9990-4299-AD96-D22DE1C5404E}.Release|x86.ActiveCfg = Release|Any CPU
+		{82B88849-9990-4299-AD96-D22DE1C5404E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -918,6 +938,8 @@ Global
 		{131B7A41-4956-4C3F-AAD5-AFD94D7F4F65} = {733ABA98-B0A0-43C8-B16C-D911AEE3EA3B}
 		{32C81B98-62DC-4E99-B6A5-3C507D1F2F48} = {733ABA98-B0A0-43C8-B16C-D911AEE3EA3B}
 		{91292C6A-626E-495D-8C71-FC375BAEB6DB} = {733ABA98-B0A0-43C8-B16C-D911AEE3EA3B}
+		{F68EF963-F542-42F1-BEA2-8FDD09C791BF} = {5EDFF098-B17F-42DB-8C7D-37860423D6D0}
+		{82B88849-9990-4299-AD96-D22DE1C5404E} = {5079CC24-DAE6-4A57-8C70-3602012AE59B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {18897662-8423-4C6C-8884-885644CCA5AC}
