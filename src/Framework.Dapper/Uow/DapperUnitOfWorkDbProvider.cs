@@ -2,7 +2,6 @@
 using Framework.Core.Data;
 using Framework.Core.Dependency;
 using Framework.Uow;
-using MySqlConnector;
 using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
@@ -21,33 +20,24 @@ namespace Framework.Dapper.Uow
             _dbConnectionProvider = dbConnectionProvider;
         }
 
-        public DbConnection GetConnection()
+        public async Task<DbConnection> GetConnectionAsync()
         {
             var unitOfWork = _unitOfWorkManager.Current;
             if (unitOfWork == null)
             {
                 throw new FrameworkException("A connection can only be created inside a unit of work!");
             }
-            var databaseApi =(DapperDatabaseApi)unitOfWork.FindDatabaseApi(unitOfWork.Id.ToString());
-           
+            var databaseApi = (DapperDatabaseApi)unitOfWork.FindDatabaseApi(unitOfWork.Id.ToString());
+
             if (databaseApi == null)
             {
-                var connection = (MySqlConnection)_dbConnectionProvider.Get();
+                var connection = await _dbConnectionProvider.GetAsync();
                 databaseApi = new DapperDatabaseApi(connection);
                 unitOfWork.AddDatabaseApi(unitOfWork.Id.ToString(), databaseApi);
             }
             return databaseApi.DbConnection;
         }
 
-        public async Task<DbConnection> GetConnectionAsync()
-        {
-            return await Task.FromResult(GetConnection());
-        }
-
-        public IDbTransaction GetTransaction()
-        {
-            throw new System.NotImplementedException();
-        }
 
         public async Task<IDbTransaction> GetTransactionAsync()
         {

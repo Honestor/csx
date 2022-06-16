@@ -1,6 +1,5 @@
 ﻿using Framework.Core.Configurations;
-using Framework.Core.Dependency;
-using Microsoft.Extensions.DependencyInjection;
+using Framework.Core.Data;
 using System.Reflection;
 
 namespace Framework.Data.Oralce
@@ -17,8 +16,9 @@ namespace Framework.Data.Oralce
         /// <returns></returns>
         public static ApplicationConfiguration UseOracel(this ApplicationConfiguration configuration)
         {
-            configuration.AddModule(Assembly.GetExecutingAssembly().FullName);
-            configuration.Container.Configure<OralceDbOptions>(configuration.Container.GetConfiguration().GetSection(nameof(OralceDbOptions)));
+            configuration
+                .UseData()
+                .AddModule(Assembly.GetExecutingAssembly().FullName);
             return configuration;
         }
     }

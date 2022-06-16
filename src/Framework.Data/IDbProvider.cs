@@ -10,18 +10,6 @@ namespace Framework.Core.Data
     public interface IDbProvider
     {
         /// <summary>
-        /// 获取数据库连接字符串 同步
-        /// </summary>
-        /// <returns></returns>
-        DbConnection GetConnection();
-
-        /// <summary>
-        /// 获取事务 异步
-        /// </summary>
-        /// <returns></returns>
-        IDbTransaction GetTransaction();
-
-        /// <summary>
         /// 获取数据库连接字符串 异步
         /// </summary>
         /// <returns></returns>

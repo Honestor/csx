@@ -1,13 +1,18 @@
-﻿using Framework.BlobStoring;
+﻿using Dapper;
+using Framework.BlobStoring;
 using Framework.BlobStoring.FileSystem;
+using Framework.Core.Data;
 using Framework.Core.Dependency;
 using Framework.Excel.Npoi;
 using Framework.Uow;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Oracle.ManagedDataAccess.Client;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Framework.AspNetCore.Test.Controllers
@@ -24,11 +29,12 @@ namespace Framework.AspNetCore.Test.Controllers
         private UserService _userService;
         private Context _context;
         private IUnitOfWorkManager _unitOfWorkManager;
+        private IDbProvider _dbProvider;
         public WeatherForecastController(
             IUserRepository userRepository,
             IExcelWriter excelWriter,
             IExcelReader excelReader,
-            IBlobContainer<FileSystemBlobContainer> fileContainer, Context context, UserService userService, IUnitOfWorkManager unitOfWorkManager)
+            IBlobContainer<FileSystemBlobContainer> fileContainer, Context context, UserService userService, IUnitOfWorkManager unitOfWorkManager, IDbProvider dbProvider)
         {
             _userRepository = userRepository;
             _excelWriter = excelWriter;
@@ -37,6 +43,7 @@ namespace Framework.AspNetCore.Test.Controllers
             _context = context;
             _userService = userService;
             _unitOfWorkManager = unitOfWorkManager;
+            _dbProvider = dbProvider;
         }
 
         private static readonly string[] Summaries = new[]
@@ -139,13 +146,62 @@ namespace Framework.AspNetCore.Test.Controllers
             return wList;
         }
 
+        #region oracle异步测试
         [HttpGet]
         public async Task Get()
         {
-            using (var uow = _unitOfWorkManager.Begin(new UnitOfWorkOptions()))
-            {
-                await Task.CompletedTask;
-            }
+            OracleConfiguration.s
+           var model = new TheadModel();
+            model.one = Thread.CurrentThread.ManagedThreadId.ToString();
+            var connection = new OracleConnection("User Id=wpsm;Password=wpsm;Data Source=172.18.100.231:1521/orcl;");
+            model.two = Thread.CurrentThread.ManagedThreadId.ToString();
+            await connection.OpenAsync();
+            model.three = Thread.CurrentThread.ManagedThreadId.ToString();
+            var result = await connection.QueryAsync<OracleTest>("select * from HeartRateIndex");
+            dic.TryAdd(Guid.NewGuid().ToString(), model);
+        }
+        #endregion
+
+
+        private static ConcurrentDictionary<string, TheadModel> dic = new ConcurrentDictionary<string, TheadModel>();
+        #region Mysql异步测试
+        //[HttpGet]
+        //public async Task Get()
+        //{
+        //    using (var uow = _unitOfWorkManager.Begin(new UnitOfWorkOptions() { }))
+        //    {
+        //        var model = new TheadModel();
+        //        model.one = Thread.CurrentThread.ManagedThreadId.ToString();
+        //        var conn = await _dbProvider.GetConnectionAsync();
+        //        model.two = Thread.CurrentThread.ManagedThreadId.ToString();
+        //        var result = await conn.QueryAsync<ac_user_copy>("select * from ac_user_copy");
+        //        model.three = Thread.CurrentThread.ManagedThreadId.ToString();
+        //        dic.TryAdd(Guid.NewGuid().ToString(), model);
+        //    }
+        //} 
+        #endregion
+
+        public class TheadModel
+        { 
+            public string one { get; set; }
+
+            public string two { get; set; }
+
+            public string three { get; set; }
+        }
+
+        public class ac_user_copy
+        {
+
+            public string name { get; set; }
+        }
+        
+
+        public class OracleTest
+        {
+            public int Id { get; set; }
+
+            public string RoomNumber { get; set; }
         }
 
         [HttpGet]

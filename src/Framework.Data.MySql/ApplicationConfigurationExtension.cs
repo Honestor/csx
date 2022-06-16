@@ -1,9 +1,5 @@
-﻿using Framework.Core;
-using Framework.Core.Configurations;
-using Framework.Core.Dependency;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using Framework.Core.Configurations;
+using Framework.Core.Data;
 using System.Reflection;
 
 namespace Framework.Data.MySql
@@ -20,8 +16,9 @@ namespace Framework.Data.MySql
         /// <returns></returns>
         public static ApplicationConfiguration UseMySql(this ApplicationConfiguration configuration)
         {
-            configuration.AddModule(Assembly.GetExecutingAssembly().FullName);
-            configuration.Container.Configure<MySqlDbOptions>(configuration.Container.GetConfiguration().GetSection(MySqlDbOptionsProvider.ConfigurationKey));
+            configuration
+                .UseData()
+                .AddModule(Assembly.GetExecutingAssembly().FullName);
             return configuration;
         }
     }

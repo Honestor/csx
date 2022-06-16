@@ -8,9 +8,9 @@ namespace Framework.Timing
     {
         protected ClockOptions Options { get; }
 
-        public Clock(IOptions<ClockOptions> options)
+        public Clock(IOptionsMonitor<ClockOptions> options)
         {
-            Options = options.Value;
+            Options = options.CurrentValue;
         }
 
         public virtual DateTime Now => Options.Kind == DateTimeKind.Utc ? DateTime.UtcNow : DateTime.Now;

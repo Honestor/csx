@@ -74,6 +74,14 @@ namespace Framework.Uow
 
         public virtual void Dispose()
         {
+            AsyncHelper.RunSync(
+                   () => DisposeAsync()
+               );
+           
+        }
+
+        public async Task DisposeAsync()
+        {
             if (IsDisposed)
             {
                 return;
@@ -81,9 +89,9 @@ namespace Framework.Uow
 
             IsDisposed = true;
 
-            DisposeTransactions();
+            await DisposeTransactionsAsync();
 
-            DisposeConnections();
+            await DisposeConnectionsAsync();
 
             if (!IsCompleted || _exception != null)
             {
@@ -98,13 +106,13 @@ namespace Framework.Uow
             Disposed.InvokeSafely(this, new UnitOfWorkEventArgs(this));
         }
 
-        private void DisposeConnections()
+        private async Task DisposeConnectionsAsync()
         {
             foreach (var databaseApi in GetAllActiveDatabaseApis())
             {
                 try
                 {
-                    databaseApi.Dispose();
+                    await databaseApi.DisposeAsync();
                 }
                 catch(Exception ex)
                 {
@@ -114,13 +122,13 @@ namespace Framework.Uow
             }
         }
 
-        private void DisposeTransactions()
+        private async Task DisposeTransactionsAsync()
         {
             foreach (var transactionApi in GetAllActiveTransactionApis())
             {
                 try
                 {
-                    transactionApi.Dispose();
+                    await transactionApi.DisposeAsync();
                 }
                 catch (Exception ex)
                 {

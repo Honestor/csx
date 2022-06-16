@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>3.0.2</Version>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -10,10 +10,6 @@
 
   <ItemGroup>
     <None Remove="聚合根通用字段创建语句%28注意改表名%29.sql" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>

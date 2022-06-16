@@ -2,6 +2,7 @@
 using Framework.Core.Dependency;
 using MySqlConnector;
 using System.Data.Common;
+using System.Threading.Tasks;
 
 namespace Framework.Data.MySql
 {
@@ -13,9 +14,11 @@ namespace Framework.Data.MySql
             _connectionStringProvider = connectionStringProvider;
         }
 
-        public DbConnection Get()
+        public async Task<DbConnection> GetAsync()
         {
-            return new MySqlConnection(_connectionStringProvider.GetConnectionString());
+            var connection= new MySqlConnection(_connectionStringProvider.GetConnectionString());
+            await connection.OpenAsync();
+            return connection;
         }
     }
 }

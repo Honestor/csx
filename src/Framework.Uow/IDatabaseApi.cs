@@ -2,7 +2,7 @@
 
 namespace Framework.Uow
 {
-    public interface IDatabaseApi: IDisposable
+    public interface IDatabaseApi: IAsyncDisposable
     {
 
     }

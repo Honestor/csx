@@ -1,6 +1,6 @@
 ﻿using Framework.Uow;
-using MySqlConnector;
 using System;
+using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,23 +8,11 @@ namespace Framework.Dapper.Uow
 {
     public class DapperTransactionApi : ITransactionApi, ISupportsRollback
     {
-        public MySqlTransaction DbTransaction { get; }
+        public DbTransaction DbTransaction { get; }
 
-        public DapperTransactionApi(MySqlTransaction dbTransaction)
+        public DapperTransactionApi(DbTransaction dbTransaction)
         {
             DbTransaction = dbTransaction;
-        }
-
-        public void Dispose()
-        {
-            try
-            {
-                DbTransaction.Dispose();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
         }
 
         public Task RollbackAsync(CancellationToken cancellationToken)
@@ -51,6 +39,12 @@ namespace Framework.Dapper.Uow
             {
                 return Task.FromException(ex);
             }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await DbTransaction.DisposeAsync();
+            GC.SuppressFinalize(this);
         }
     }
 }

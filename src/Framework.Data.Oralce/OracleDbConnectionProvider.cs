@@ -2,6 +2,7 @@
 using Framework.Core.Dependency;
 using Oracle.ManagedDataAccess.Client;
 using System.Data.Common;
+using System.Threading.Tasks;
 
 namespace Framework.Data.Oralce
 {
@@ -13,9 +14,12 @@ namespace Framework.Data.Oralce
             _connectionStringProvider = connectionStringProvider;
         }
 
-        public DbConnection Get()
+
+        public async Task<DbConnection> GetAsync()
         {
-            return new OracleConnection(_connectionStringProvider.GetConnectionString()); 
+            var connection = new OracleConnection(_connectionStringProvider.GetConnectionString());
+            await connection.OpenAsync();
+            return connection;
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Framework.Uow
     /// <summary>
     /// 事务Api抽象
     /// </summary>
-    public interface ITransactionApi: IDisposable
+    public interface ITransactionApi: IAsyncDisposable
     {
         Task CommitAsync(CancellationToken cancellationToken = default);
     }

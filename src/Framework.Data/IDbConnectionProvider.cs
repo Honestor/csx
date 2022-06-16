@@ -12,6 +12,6 @@ namespace Framework.Core.Data
         /// 同步获取数据库连接
         /// </summary>
         /// <returns></returns>
-        DbConnection Get();
+        Task<DbConnection> GetAsync();
     }
 }

@@ -5,6 +5,7 @@ using Framework.BlobStoring.FileSystem;
 using Framework.Core.Configurations;
 using Framework.Dapper;
 using Framework.Data.MySql;
+using Framework.Data.Oralce;
 using Framework.Excel.Npoi;
 using Framework.ExceptionHandling;
 using Framework.Json;
@@ -44,7 +45,7 @@ namespace Framework.AspNetCore.Test
             .UseUnitOfWork()
             .UseAspNetCore()
             .UseAspNetCoreMvc()
-            .UseMySql()
+            .UseOracel()
             .UseDapper()
             .UseNpoiExcel()
             .UseBlobStoring()

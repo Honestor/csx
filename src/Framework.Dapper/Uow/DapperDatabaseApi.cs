@@ -1,21 +1,23 @@
 ﻿using Framework.Uow;
-using MySqlConnector;
+using System;
+using System.Data.Common;
+using System.Threading.Tasks;
 
 namespace Framework.Dapper.Uow
 {
     public class DapperDatabaseApi : IDatabaseApi
     {
-        public MySqlConnection DbConnection { get; }
+        public DbConnection DbConnection { get; }
 
-        public DapperDatabaseApi(MySqlConnection _dbConnection)
+        public DapperDatabaseApi(DbConnection _dbConnection)
         {
             DbConnection = _dbConnection;
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            DbConnection.Close();
-            DbConnection.Dispose();
+            await DbConnection.DisposeAsync();
+            GC.SuppressFinalize(this);
         }
     }
 }
