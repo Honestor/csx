@@ -1,10 +1,10 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : 47.96.116.129
+ Source Server         : Tj_Aali_Server
  Source Server Type    : MySQL
  Source Server Version : 80011
- Source Host           : 47.96.116.129:3306
+ Source Host           : Tj_Aali_Server:3306
  Source Schema         : quzhou_baseasset
 
  Target Server Type    : MySQL

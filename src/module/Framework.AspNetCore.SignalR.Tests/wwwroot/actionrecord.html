@@ -17,7 +17,7 @@
 <script type="text/javascript">
     var username = '公安监控',userid='1111', ab = '22222222-2222-4cb8-9948-61163e81524c', cd ='44444444-2222-4cb8-9948-61163e81524c';
     var connection = new signalR.HubConnectionBuilder()
-        .withUrl("http://47.96.116.129:9003/chat?userid=" + userid)
+        .withUrl("http://Tj_Aali_Server:9003/chat?userid=" + userid)
         .configureLogging("error")
         .withHubProtocol(new signalR.protocols.msgpack.MessagePackHubProtocol())
         .build();

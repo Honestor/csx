@@ -15,7 +15,7 @@ namespace Framework.Data.Oralce
 
         public DbConnection Get()
         {
-            return new OracleConnection(_connectionStringProvider.GetConnectionString());
+            return new OracleConnection(_connectionStringProvider.GetConnectionString()); 
         }
     }
 }

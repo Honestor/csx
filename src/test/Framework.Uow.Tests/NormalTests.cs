@@ -25,8 +25,11 @@ namespace Framework.Uow.Tests
                 {
                     try
                     {
+                        var id1 = Thread.CurrentThread.ManagedThreadId;
                         await TestRepository.Update("222");
+                        var id2 = Thread.CurrentThread.ManagedThreadId;
                         await uow1.CompleteAsync();
+                        var id3 = Thread.CurrentThread.ManagedThreadId;
                     }
                     catch 
                     {
