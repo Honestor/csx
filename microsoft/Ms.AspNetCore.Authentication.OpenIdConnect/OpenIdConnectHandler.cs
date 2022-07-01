@@ -40,9 +40,119 @@ namespace Ms.AspNetCore.Authentication.OpenIdConnect
             HtmlEncoder = htmlEncoder;
         }
 
-        public Task SignOutAsync(AuthenticationProperties properties)
+        public async virtual Task SignOutAsync(AuthenticationProperties properties)
         {
-            throw new NotImplementedException();
+            var target = ResolveTarget(Options.ForwardSignOut);
+            if (target != null)
+            {
+                await Context.SignOutAsync(target, properties);
+                return;
+            }
+
+            properties = properties ?? new AuthenticationProperties();
+
+            Logger.EnteringOpenIdAuthenticationHandlerHandleSignOutAsync(GetType().FullName);
+
+            if (_configuration == null && Options.ConfigurationManager != null)
+            {
+                _configuration = await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
+            }
+
+            var message = new OpenIdConnectMessage()
+            {
+                EnableTelemetryParameters = !Options.DisableTelemetry,
+                IssuerAddress = _configuration?.EndSessionEndpoint ?? string.Empty,
+
+                // Redirect back to SigneOutCallbackPath first before user agent is redirected to actual post logout redirect uri
+                PostLogoutRedirectUri = BuildRedirectUriIfRelative(Options.SignedOutCallbackPath)
+            };
+
+            // Get the post redirect URI.
+            if (string.IsNullOrEmpty(properties.RedirectUri))
+            {
+                properties.RedirectUri = BuildRedirectUriIfRelative(Options.SignedOutRedirectUri);
+                if (string.IsNullOrWhiteSpace(properties.RedirectUri))
+                {
+                    properties.RedirectUri = OriginalPathBase + OriginalPath + Request.QueryString;
+                }
+            }
+            Logger.PostSignOutRedirect(properties.RedirectUri);
+
+            // Attach the identity token to the logout request when possible.
+            message.IdTokenHint = await Context.GetTokenAsync(Options.SignOutScheme, OpenIdConnectParameterNames.IdToken);
+
+            var redirectContext = new RedirectContext(Context, Scheme, Options, properties)
+            {
+                ProtocolMessage = message
+            };
+
+            await Events.RedirectToIdentityProviderForSignOut(redirectContext);
+            if (redirectContext.Handled)
+            {
+                Logger.RedirectToIdentityProviderForSignOutHandledResponse();
+                return;
+            }
+
+            message = redirectContext.ProtocolMessage;
+
+            if (!string.IsNullOrEmpty(message.State))
+            {
+                properties.Items[OpenIdConnectDefaults.UserstatePropertiesKey] = message.State;
+            }
+
+            message.State = Options.StateDataFormat.Protect(properties);
+
+            if (string.IsNullOrEmpty(message.IssuerAddress))
+            {
+                throw new InvalidOperationException("Cannot redirect to the end session endpoint, the configuration may be missing or invalid.");
+            }
+
+            if (Options.AuthenticationMethod == OpenIdConnectRedirectBehavior.RedirectGet)
+            {
+                var redirectUri = message.CreateLogoutRequestUrl();
+                if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
+                {
+                    Logger.InvalidLogoutQueryStringRedirectUrl(redirectUri);
+                }
+
+                Response.Redirect(redirectUri);
+            }
+            else if (Options.AuthenticationMethod == OpenIdConnectRedirectBehavior.FormPost)
+            {
+                var content = message.BuildFormPost();
+                var buffer = Encoding.UTF8.GetBytes(content);
+
+                Response.ContentLength = buffer.Length;
+                Response.ContentType = "text/html;charset=UTF-8";
+
+                // Emit Cache-Control=no-cache to prevent client caching.
+                Response.Headers[HeaderNames.CacheControl] = "no-cache, no-store";
+                Response.Headers[HeaderNames.Pragma] = "no-cache";
+                Response.Headers[HeaderNames.Expires] = HeaderValueEpocDate;
+
+                await Response.Body.WriteAsync(buffer, 0, buffer.Length);
+            }
+            else
+            {
+                throw new NotImplementedException($"An unsupported authentication method has been configured: {Options.AuthenticationMethod}");
+            }
+
+            Logger.AuthenticationSchemeSignedOut(Scheme.Name);
+        }
+
+        private string BuildRedirectUriIfRelative(string uri)
+        {
+            if (string.IsNullOrEmpty(uri))
+            {
+                return uri;
+            }
+
+            if (!uri.StartsWith("/", StringComparison.Ordinal))
+            {
+                return uri;
+            }
+
+            return BuildRedirectUri(uri);
         }
 
         protected new OpenIdConnectEvents Events
@@ -80,7 +190,9 @@ namespace Ms.AspNetCore.Authentication.OpenIdConnect
               && Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)
               && Request.Body.CanRead)
             {
+                //读取id4生成的code相关参数的html页面的表单参数
                 var form = await Request.ReadFormAsync();
+                //相关参数初始化到OpenIdConnectMessage实例中
                 authorizationResponse = new OpenIdConnectMessage(form.Select(pair => new KeyValuePair<string, string[]>(pair.Key, pair.Value)));
             }
 
@@ -340,6 +452,304 @@ namespace Ms.AspNetCore.Authentication.OpenIdConnect
             }
         }
 
+        private const string CorrelationProperty = ".xsrf";
+        private const string CorrelationMarker = "N";
+        private const string AuthSchemeKey = ".AuthScheme";
+        protected override bool ValidateCorrelationId(AuthenticationProperties properties)
+        {
+            if (properties == null)
+            {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (!properties.Items.TryGetValue(CorrelationProperty, out var correlationId))
+            {
+               // Logger.CorrelationPropertyNotFound(Options.CorrelationCookie.Name!);
+                return false;
+            }
+
+            properties.Items.Remove(CorrelationProperty);
+
+            var cookieName = Options.CorrelationCookie.Name + correlationId;
+
+            var correlationCookie = Request.Cookies[cookieName];
+            if (string.IsNullOrEmpty(correlationCookie))
+            {
+                //Logger.CorrelationCookieNotFound(cookieName);
+                return false;
+            }
+
+            var cookieOptions = Options.CorrelationCookie.Build(Context, Clock.UtcNow);
+
+            Response.Cookies.Delete(cookieName, cookieOptions);
+
+            if (!string.Equals(correlationCookie, CorrelationMarker, StringComparison.Ordinal))
+            {
+                //Logger.UnexpectedCorrelationCookieValue(cookieName, correlationCookie);
+                return false;
+            }
+
+            return true;
+        }
+
+        public override async Task<bool> HandleRequestAsync()
+        {
+            //判断请求的路径是否是远程登出方法 /signout-oidc
+            if (Options.RemoteSignOutPath.HasValue && Options.RemoteSignOutPath == Request.Path)
+            {
+                //执行远程登出
+                return await HandleRemoteSignOutAsync();
+            }
+            //判断请求的路径是否是远程登出回调   /signout-callback-oidc
+            else if (Options.SignedOutCallbackPath.HasValue && Options.SignedOutCallbackPath == Request.Path)
+            {
+                //执行远程登出回调
+                return await HandleSignOutCallbackAsync();
+            }
+            //判断请求的路径是否是远程登录 /signin-oidc
+            else if (Options.CallbackPath == Request.Path)
+            {
+                AuthenticationTicket? ticket = null;
+                Exception? exception = null;
+                AuthenticationProperties? properties = null;
+                try
+                {
+                    var authResult = await HandleRemoteAuthenticateAsync();
+                    if (authResult == null)
+                    {
+                        exception = new InvalidOperationException("Invalid return state, unable to redirect.");
+                    }
+                    else if (authResult.Handled)
+                    {
+                        return true;
+                    }
+                    else if (authResult.Skipped || authResult.None)
+                    {
+                        return false;
+                    }
+                    else if (!authResult.Succeeded)
+                    {
+                        exception = authResult.Failure ?? new InvalidOperationException("Invalid return state, unable to redirect.");
+                        properties = authResult.Properties;
+                    }
+
+                    ticket = authResult?.Ticket;
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                }
+
+                if (exception != null)
+                {
+
+                    var errorContext = new RemoteFailureContext(Context, Scheme, Options, exception)
+                    {
+                        Properties = properties
+                    };
+                    await Events.RemoteFailure(errorContext);
+
+                    if (errorContext.Result != null)
+                    {
+                        if (errorContext.Result.Handled)
+                        {
+                            return true;
+                        }
+                        else if (errorContext.Result.Skipped)
+                        {
+                            return false;
+                        }
+                        else if (errorContext.Result.Failure != null)
+                        {
+                            throw new Exception("An error was returned from the RemoteFailure event.", errorContext.Result.Failure);
+                        }
+                    }
+
+                    if (errorContext.Failure != null)
+                    {
+                        throw new Exception("An error was encountered while handling the remote login.", errorContext.Failure);
+                    }
+                }
+
+                var ticketContext = new TicketReceivedContext(Context, Scheme, Options, ticket)
+                {
+                    ReturnUri = ticket.Properties.RedirectUri
+                };
+
+                ticket.Properties.RedirectUri = null;
+
+                // Mark which provider produced this identity so we can cross-check later in HandleAuthenticateAsync
+                //ticketContext.Properties.Items[AuthSchemeKey] = Scheme.Name;
+
+                await Events.TicketReceived(ticketContext);
+
+                if (ticketContext.Result != null)
+                {
+                    if (ticketContext.Result.Handled)
+                    {
+
+                        return true;
+                    }
+                    else if (ticketContext.Result.Skipped)
+                    {
+
+                        return false;
+                    }
+                }
+
+                await Context.SignInAsync(SignInScheme, ticketContext.Principal!, ticketContext.Properties);
+
+                // Default redirect path is the base path
+                if (string.IsNullOrEmpty(ticketContext.ReturnUri))
+                {
+                    ticketContext.ReturnUri = "/";
+                }
+
+                Response.Redirect(ticketContext.ReturnUri);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+
+        protected virtual async Task<bool> HandleRemoteSignOutAsync()
+        {
+            OpenIdConnectMessage message = null;
+
+            if (HttpMethods.IsGet(Request.Method))
+            {
+                message = new OpenIdConnectMessage(Request.Query.Select(pair => new KeyValuePair<string, string[]>(pair.Key, pair.Value)));
+            }
+
+            // assumption: if the ContentType is "application/x-www-form-urlencoded" it should be safe to read as it is small.
+            else if (HttpMethods.IsPost(Request.Method)
+              && !string.IsNullOrEmpty(Request.ContentType)
+              // May have media/type; charset=utf-8, allow partial match.
+              && Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)
+              && Request.Body.CanRead)
+            {
+                var form = await Request.ReadFormAsync();
+                message = new OpenIdConnectMessage(form.Select(pair => new KeyValuePair<string, string[]>(pair.Key, pair.Value)));
+            }
+
+            var remoteSignOutContext = new RemoteSignOutContext(Context, Scheme, Options, message);
+            await Events.RemoteSignOut(remoteSignOutContext);
+
+            if (remoteSignOutContext.Result != null)
+            {
+                if (remoteSignOutContext.Result.Handled)
+                {
+                    Logger.RemoteSignOutHandledResponse();
+                    return true;
+                }
+                if (remoteSignOutContext.Result.Skipped)
+                {
+                    Logger.RemoteSignOutSkipped();
+                    return false;
+                }
+                if (remoteSignOutContext.Result.Failure != null)
+                {
+                    throw new InvalidOperationException("An error was returned from the RemoteSignOut event.", remoteSignOutContext.Result.Failure);
+                }
+            }
+
+            if (message == null)
+            {
+                return false;
+            }
+
+            // Try to extract the session identifier from the authentication ticket persisted by the sign-in handler.
+            // If the identifier cannot be found, bypass the session identifier checks: this may indicate that the
+            // authentication cookie was already cleared, that the session identifier was lost because of a lossy
+            // external/application cookie conversion or that the identity provider doesn't support sessions.
+            var principal = (await Context.AuthenticateAsync(Options.SignOutScheme))?.Principal;
+
+            var sid = principal?.FindFirst(JwtRegisteredClaimNames.Sid)?.Value;
+            if (!string.IsNullOrEmpty(sid))
+            {
+                // Ensure a 'sid' parameter was sent by the identity provider.
+                if (string.IsNullOrEmpty(message.Sid))
+                {
+                    Logger.RemoteSignOutSessionIdMissing();
+                    return true;
+                }
+                // Ensure the 'sid' parameter corresponds to the 'sid' stored in the authentication ticket.
+                if (!string.Equals(sid, message.Sid, StringComparison.Ordinal))
+                {
+                    Logger.RemoteSignOutSessionIdInvalid();
+                    return true;
+                }
+            }
+
+            var iss = principal?.FindFirst(JwtRegisteredClaimNames.Iss)?.Value;
+            if (!string.IsNullOrEmpty(iss))
+            {
+                // Ensure a 'iss' parameter was sent by the identity provider.
+                if (string.IsNullOrEmpty(message.Iss))
+                {
+                    Logger.RemoteSignOutIssuerMissing();
+                    return true;
+                }
+                // Ensure the 'iss' parameter corresponds to the 'iss' stored in the authentication ticket.
+                if (!string.Equals(iss, message.Iss, StringComparison.Ordinal))
+                {
+                    Logger.RemoteSignOutIssuerInvalid();
+                    return true;
+                }
+            }
+
+            Logger.RemoteSignOut();
+
+            // We've received a remote sign-out request
+            await Context.SignOutAsync(Options.SignOutScheme);
+            return true;
+        }
+
+        protected async virtual Task<bool> HandleSignOutCallbackAsync()
+        {
+            var message = new OpenIdConnectMessage(Request.Query.Select(pair => new KeyValuePair<string, string[]>(pair.Key, pair.Value)));
+            AuthenticationProperties properties = null;
+            if (!string.IsNullOrEmpty(message.State))
+            {
+                properties = Options.StateDataFormat.Unprotect(message.State);
+            }
+
+            var signOut = new RemoteSignOutContext(Context, Scheme, Options, message)
+            {
+                Properties = properties,
+            };
+
+            await Events.SignedOutCallbackRedirect(signOut);
+            if (signOut.Result != null)
+            {
+                if (signOut.Result.Handled)
+                {
+                    Logger.SignOutCallbackRedirectHandledResponse();
+                    return true;
+                }
+                if (signOut.Result.Skipped)
+                {
+                    Logger.SignOutCallbackRedirectSkipped();
+                    return false;
+                }
+                if (signOut.Result.Failure != null)
+                {
+                    throw new InvalidOperationException("An error was returned from the SignedOutCallbackRedirect event.", signOut.Result.Failure);
+                }
+            }
+
+            properties = signOut.Properties;
+            if (!string.IsNullOrEmpty(properties?.RedirectUri))
+            {
+                Response.Redirect(properties.RedirectUri);
+            }
+
+            return true;
+        }
+
         protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
         {
             await HandleChallengeAsyncInternal(properties);
@@ -376,16 +786,22 @@ namespace Ms.AspNetCore.Authentication.OpenIdConnect
 
             var message = new OpenIdConnectMessage
             {
+                //从oidc中获取了客户端的id
                 ClientId = Options.ClientId,
+                //监控相关
                 EnableTelemetryParameters = !Options.DisableTelemetry,
+                //从id4服务中获取的认证终结点访问地址
                 IssuerAddress = _configuration?.AuthorizationEndpoint ?? string.Empty,
+                //
                 RedirectUri = BuildRedirectUri(Options.CallbackPath),
                 Resource = Options.Resource,
                 ResponseType = Options.ResponseType,
                 Prompt = properties.GetParameter<string>(OpenIdConnectParameterNames.Prompt) ?? Options.Prompt,
                 Scope = string.Join(" ", properties.GetParameter<ICollection<string>>(OpenIdConnectParameterNames.Scope) ?? Options.Scope),
             };
-
+            var sa = Request.Scheme;
+            var host=Request.Host;
+            var asds = Context.Features.Get<IAuthenticationFeature>()?.OriginalPathBase;
             // https://tools.ietf.org/html/rfc7636
             if (Options.UsePkce && Options.ResponseType == OpenIdConnectResponseType.Code)
             {
@@ -488,6 +904,18 @@ namespace Ms.AspNetCore.Authentication.OpenIdConnect
             }
 
             throw new NotImplementedException($"An unsupported authentication method has been configured: {Options.AuthenticationMethod}");
+        }
+
+        protected override void GenerateCorrelationId(AuthenticationProperties properties)
+        {
+
+            var bytes = new byte[32];
+            RandomNumberGenerator.Fill(bytes);
+            var correlationId = Microsoft.AspNetCore.Authentication.Base64UrlTextEncoder.Encode(bytes);
+
+            var cookieName = Options.CorrelationCookie.Name + correlationId;
+
+            base.GenerateCorrelationId(properties);
         }
 
         private void WriteNonceCookie(string nonce)

@@ -13,16 +13,69 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Ms.Oidc.Tests
 {
+    public class ConcurrentDataList<TEntity> where TEntity : class
+    {
+        private static ReaderWriterLockSlim _cacheLock;
+        private static List<TEntity> _innerCache;
+        static ConcurrentDataList()
+        {
+            _innerCache = new List<TEntity>();
+            _cacheLock = new ReaderWriterLockSlim();
+        }
+
+        public List<TEntity> Read()
+        {
+            _cacheLock.EnterReadLock();
+            try
+            {
+                return _innerCache;
+            }
+            finally
+            {
+                _cacheLock.ExitReadLock();
+            }
+        }
+    }
+
+    public class A
+    {
+
+    }
+
+    public class B
+    {
+
+    }
+
+    public class C
+    { 
+        
+    }
+
     public class Startup
     {
-       
+        void CheckSameSite(HttpContext httpContext, CookieOptions options)
+        {
+            if (options.SameSite == SameSiteMode.None)
+            {
+                var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
+                if (true)
+                {
+                    options.SameSite = SameSiteMode.Unspecified;
+                }
+            }
+        }
+
         public void ConfigureServices(IServiceCollection services)
         {
-            
+            var a=new ConcurrentDataList<A>();
+            var b = new ConcurrentDataList<B>();
+            var c = new ConcurrentDataList<C>();
             services.AddControllersWithViews();
             JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
             services.AddAuthentication(options =>
@@ -40,6 +93,14 @@ namespace Ms.Oidc.Tests
                 options.ResponseType = "code";
                 options.SaveTokens = true;
             });
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                options.MinimumSameSitePolicy = SameSiteMode.Unspecified;
+                options.OnAppendCookie = cookieContext =>
+                CheckSameSite(cookieContext.Context, cookieContext.CookieOptions);
+                options.OnDeleteCookie = cookieContext =>
+                CheckSameSite(cookieContext.Context, cookieContext.CookieOptions);
+            });
             services.AddSingleton<PolicyEvaluatorTest>();
             services.AddTransient<IAuthorizationPolicyProvider,TestAuthorizationPolicyProvider>();
         }
@@ -48,7 +109,8 @@ namespace Ms.Oidc.Tests
         {
             
             app.UseRouting();
-            app.UseAuthentication();
+            app.UseCookiePolicy();
+            app.UseMiddleware<TestAuthenticationMiddleware>();
             app.UseMiddleware<TestMiddleware>();
             app.UseEndpoints(endpoints =>
             {
@@ -58,6 +120,73 @@ namespace Ms.Oidc.Tests
         }
     }
 
+
+    public class TestAuthenticationMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="AuthenticationMiddleware"/>.
+        /// </summary>
+        /// <param name="next">The next item in the middleware pipeline.</param>
+        /// <param name="schemes">The <see cref="IAuthenticationSchemeProvider"/>.</param>
+        public TestAuthenticationMiddleware(RequestDelegate next, IAuthenticationSchemeProvider schemes)
+        {
+            if (next == null)
+            {
+                throw new ArgumentNullException(nameof(next));
+            }
+            if (schemes == null)
+            {
+                throw new ArgumentNullException(nameof(schemes));
+            }
+
+            _next = next;
+            Schemes = schemes;
+        }
+
+        /// <summary>
+        /// Gets or sets the <see cref="IAuthenticationSchemeProvider"/>.
+        /// </summary>
+        public IAuthenticationSchemeProvider Schemes { get; set; }
+
+        /// <summary>
+        /// Invokes the middleware performing authentication.
+        /// </summary>
+        /// <param name="context">The <see cref="HttpContext"/>.</param>
+        public async Task Invoke(HttpContext context)
+        {
+            context.Features.Set<IAuthenticationFeature>(new AuthenticationFeature
+            {
+                OriginalPath = context.Request.Path,
+                OriginalPathBase = context.Request.PathBase
+            });
+
+            // Give any IAuthenticationRequestHandler schemes a chance to handle the request
+            var handlers = context.RequestServices.GetRequiredService<IAuthenticationHandlerProvider>();
+            foreach (var scheme in await Schemes.GetRequestHandlerSchemesAsync())
+            {
+                //这里oidc流程是远程调用的一种,所以会执行OpenIdConnectHandler实例的HandleRequestAsync方法
+                var handler = await handlers.GetHandlerAsync(context, scheme.Name) as IAuthenticationRequestHandler;
+                if (handler != null && await handler.HandleRequestAsync())
+                {
+                    return;
+                }
+            }
+
+            var defaultAuthenticate = await Schemes.GetDefaultAuthenticateSchemeAsync();
+            if (defaultAuthenticate != null)
+            {
+                var result = await context.AuthenticateAsync(defaultAuthenticate.Name);
+                if (result?.Principal != null)
+                {
+                    context.User = result.Principal;
+                }
+            }
+
+            await _next(context);
+        }
+    }
 
     public class TestMiddleware
     {
@@ -74,7 +203,8 @@ namespace Ms.Oidc.Tests
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _policyProvider = policyProvider ?? throw new ArgumentNullException(nameof(policyProvider));
         }
-
+        private const string AuthorizationMiddlewareInvokedWithEndpointKey = "__AuthorizationMiddlewareWithEndpointInvoked";
+        private static readonly object AuthorizationMiddlewareWithEndpointInvokedValue = new object();
         public async Task Invoke(HttpContext context)
         {
             if (context == null)
@@ -86,7 +216,7 @@ namespace Ms.Oidc.Tests
 
             if (endpoint != null)
             {
-                
+                context.Items[AuthorizationMiddlewareInvokedWithEndpointKey] = AuthorizationMiddlewareWithEndpointInvokedValue;
             }
 
             // IMPORTANT: Changes to authorization logic should be mirrored in MVC's AuthorizeFilter

@@ -71,6 +71,8 @@ namespace Ms.AspNetCore.Authentication.OpenIdConnect
 
         public PathString RemoteSignOutPath { get; set; }
 
+        public string SignedOutRedirectUri { get; set; } = "/";
+
         /// <summary>
         /// 安全令牌校验
         /// </summary>
