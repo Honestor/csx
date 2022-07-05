@@ -150,7 +150,6 @@ namespace Framework.AspNetCore.Test.Controllers
         [HttpGet]
         public async Task Get()
         {
-            OracleConfiguration.s
            var model = new TheadModel();
             model.one = Thread.CurrentThread.ManagedThreadId.ToString();
             var connection = new OracleConnection("User Id=wpsm;Password=wpsm;Data Source=172.18.100.231:1521/orcl;");
