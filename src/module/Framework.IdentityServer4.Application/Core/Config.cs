@@ -33,7 +33,7 @@ namespace Framework.IdentityServer4.Application
                     AllowedScopes = { "api1" }
                 },
                 
-                // interactive ASP.NET Core MVC client
+                //mvc客户端
                 new Client
                 {
                     ClientId = "mvc",
@@ -48,6 +48,24 @@ namespace Framework.IdentityServer4.Application
                     PostLogoutRedirectUris = { "http://localhost:5002/signout-callback-oidc" },
 
                     AllowedScopes = new List<string>
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
+                        "api1"
+                    }
+                },
+                
+                //javascript客户端 
+                new Client
+                {
+                    ClientId = "js",
+                    ClientName = "JavaScript客户端",
+                    AllowedGrantTypes = GrantTypes.Code,
+                    RequireClientSecret = false,
+                    RedirectUris =           { "https://localhost:5003/callback.html" },
+                    PostLogoutRedirectUris = { "https://localhost:5003/index.html" },
+                    AllowedCorsOrigins =     { "https://localhost:5003" },
+                    AllowedScopes =
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
