@@ -88,6 +88,8 @@ namespace Framework.IdentityServer4.Application
             application.Container.AddTransient<IProfileService,TestUserProfileService>();
             application.Container.AddTransient<IResourceOwnerPasswordValidator, TestUserResourceOwnerPasswordValidator>();
 
+            application.Container.AddTransient<ICorsPolicyService, InMemoryCorsPolicyService>();
+
             return application;
         }
     }

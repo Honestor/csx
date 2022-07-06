@@ -52,7 +52,7 @@ namespace Framework.IdentityServer4.SSO.MVC
                 options.ClientSecret = "secret";
                 options.ResponseType = "code";
                 options.Scope.Add("api1");
-                options.SaveTokens = true;
+                options.SaveTokens = false;
             });
         }
 

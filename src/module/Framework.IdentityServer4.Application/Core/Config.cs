@@ -62,9 +62,26 @@ namespace Framework.IdentityServer4.Application
                     ClientName = "JavaScript客户端",
                     AllowedGrantTypes = GrantTypes.Code,
                     RequireClientSecret = false,
-                    RedirectUris =           { "https://localhost:5003/callback.html" },
-                    PostLogoutRedirectUris = { "https://localhost:5003/index.html" },
-                    AllowedCorsOrigins =     { "https://localhost:5003" },
+                    RedirectUris =           { "http://localhost:5003/callback.html" },
+                    PostLogoutRedirectUris = { "http://localhost:5003/index.html" },
+                    AllowedCorsOrigins =     { "http://localhost:5003" },
+                    AllowedScopes =
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
+                        "api1"
+                    }
+                },
+                 //javascript客户端 
+                new Client
+                {
+                    ClientId = "js1",
+                    ClientName = "JavaScript客户端1",
+                    AllowedGrantTypes = GrantTypes.Code,
+                    RequireClientSecret = false,
+                    RedirectUris =           { "http://localhost:5004/callback.html" },
+                    PostLogoutRedirectUris = { "http://localhost:5004/index.html" },
+                    AllowedCorsOrigins =     { "http://localhost:5004" },
                     AllowedScopes =
                     {
                         IdentityServerConstants.StandardScopes.OpenId,

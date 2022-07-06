@@ -1,0 +1,79 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="js/oidc/oidc-client.js"></script>
+    <script src="js/jquery.min.js"></script>
+</head>
+<body>
+    用户名:<input type="text" id="userName" />
+    密码:<input type="text" id="password" />
+    <input type="button" value="登录" id="login" />
+    <input type="button" value="调用api" id="api" />
+    <input type="button" value="退出登录" id="loginOut" />
+    <script type="text/javascript">
+        var param = {
+            userManager: null
+        };
+        var index = {
+            init: function () {
+                index.initOidc();
+            },
+            /*
+             * 初始化oidc相关
+             * */
+            initOidc: function () {
+                var config = {
+                    authority: "http://localhost:5001",
+                    client_id: "js",
+                    redirect_uri: "http://localhost:5003/callback.html",
+                    response_type: "code",
+                    scope: "openid profile api1",
+                    post_logout_redirect_uri: "http://localhost:5003/index.html",
+                };
+                param.userManager = new Oidc.UserManager(config);
+            },
+
+            /*
+             * 登录
+             * */
+            login: function () {
+                param.userManager.signinRedirect();
+            },
+            /*
+             * 推出登录
+             * */
+            loginOut: function () {
+                param.userManager.signoutRedirect();
+            },
+            /*
+             * 访问
+             * */
+            visit: function () {
+                param.userManager.getUser().then(function (user) {
+                    var url = "http://localhost:5003/api/user";
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("GET", url);
+                    xhr.onload = function () {
+                        var str = xhr.status+' '+JSON.parse(xhr.responseText);
+                        alert(str);
+                    }
+                    xhr.setRequestHeader("Authorization", "Bearer " + user.access_token);
+                    xhr.send();
+                });
+            },
+            bindEvent: function () {
+                $(document).off('click', '#login').on('click', '#login', index.login);
+                $(document).off('click', '#api').on('click', '#api', index.visit);
+                $(document).off('click', '#loginOut').on('click', '#loginOut', index.loginOut);
+            }
+        };
+
+        $(function () {
+            index.init();
+            index.bindEvent();
+        });
+    </script>
+</body>
+</html>
