@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Consul" Version="1.6.10.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Framework.AspNetCore.Mvc\Framework.AspNetCore.Mvc.csproj" />
+    <ProjectReference Include="..\..\Framework.AspNetCore\Framework.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\Framework.Core\Framework.Core.csproj" />
+    <ProjectReference Include="..\..\Framework.Json\Framework.Json.csproj" />
+    <ProjectReference Include="..\..\Framework.Uow\Framework.Uow.csproj" />
+    <ProjectReference Include="..\Framework.Consul.Client\Framework.Consul.Client.csproj" />
+  </ItemGroup>
+
+</Project>

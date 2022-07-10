@@ -1,12 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Yarp.ReverseProxy" Version="1.1.0" />
+    <PackageReference Include="Yarp.ReverseProxy" Version="1.1.1" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Framework.GateWay.Yarp.Application\Framework.GateWay.Yarp.Application.csproj" />
+    <ProjectReference Include="..\..\Framework.AspNetCore\Framework.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\Framework.Core\Framework.Core.csproj" />
   </ItemGroup>
+
 </Project>

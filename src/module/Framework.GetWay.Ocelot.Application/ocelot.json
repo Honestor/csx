@@ -1,0 +1,21 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/user/getwaytest", //下游服务地址--url变量
+      "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/getway/{url}", //上游请求路径，网关地址--url变量
+      "UpstreamHttpMethod": [ "get", "post" ],
+      "UseServiceDiscovery": true, //使用服务发现
+      "ServiceName": "TestService", //consul服务名称
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin" //RoundRobin 轮询      LeastConnection-最少连接数的服务器   NoLoadBalance不负载均衡
+      }
+    }
+  ],
+  "ServiceDiscoveryProvider": 
+  {
+    "Host": "127.0.0.1",
+    "Port": 8500,
+    "Type": "Consul" //由consul提供服务发现，ocelot也支持etc等
+  }
+}
