@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Framework.Core\Framework.Core.csproj" />
+    <ProjectReference Include="..\Framework.Consul.Client\Framework.Consul.Client.csproj" />
     <ProjectReference Include="..\Framework.IdentityServer4.Domain\Framework.IdentityServer4.Domain.csproj" />
     <ProjectReference Include="..\IdentityServer4\IdentityServer4\src\IdentityServer4.csproj" />
   </ItemGroup>

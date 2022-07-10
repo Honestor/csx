@@ -1,3 +1,4 @@
+using Framework.Consul.Client;
 using Framework.Core.Configurations;
 using Framework.IdentityServer4.Application;
 using Framework.IdentityServer4.Domain;
@@ -8,6 +9,7 @@ builder.Services
     .UseCore()
     .UseIdentityServer4()
     .UseApplication()
+    .UseConsulClient()
     .LoadModules();
 
 var app = builder.Build();

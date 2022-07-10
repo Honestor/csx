@@ -38,7 +38,7 @@ namespace IdentityServer4.Endpoints
             // validate HTTP
             if (!HttpMethods.IsGet(context.Request.Method))
             {
-                _logger.LogWarning("Discovery endpoint only supports GET requests");
+                _logger.LogWarning("Discovery  endpoint only supports GET requests");
                 return new StatusCodeResult(HttpStatusCode.MethodNotAllowed);
             }
 
