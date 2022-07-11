@@ -194,5 +194,11 @@ namespace Ms.AspNetCore.Authentication.OpenIdConnect
             get => _nonceCookieBuilder;
             set => _nonceCookieBuilder = value ?? throw new ArgumentNullException(nameof(value));
         }
+
+        public new OpenIdConnectEvents Events
+        {
+            get => (OpenIdConnectEvents)base.Events;
+            set => base.Events = value;
+        }
     }
 }

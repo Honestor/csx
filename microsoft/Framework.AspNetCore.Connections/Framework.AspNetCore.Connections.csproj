@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Framework.AspNetCore.Connections.Abstractions\Framework.AspNetCore.Connections.Abstractions.csproj" />
+    <ProjectReference Include="..\Framework.AspNetCore.Connections.Common\Framework.AspNetCore.Connections.Common.csproj" />
+  </ItemGroup>
+</Project>

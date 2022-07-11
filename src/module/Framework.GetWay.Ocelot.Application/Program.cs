@@ -1,4 +1,5 @@
 using Framework.Core.Configurations;
+using Framework.Core.Dependency;
 using Framework.GetWay.Ocelot;
 using Ocelot.Middleware;
 
@@ -8,8 +9,23 @@ builder.Services
     .UseOcelotWithConsul()
     .LoadModules();
 
-var app = builder.Build();
+//¿çÓò°×Ãûµ¥
+var allOrigins = builder.Services.GetConfiguration().GetSection("CorsOptions:AllowOrigins").GetChildren().Select(s => s.Value).ToArray();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", builder =>
+    {
+        builder
+        .WithOrigins(allOrigins)
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials();
+    });
+});
 
-app.UseOcelot();
+
+var app = builder.Build();
+app.UseCors("CorsPolicy");
+app.UseOcelot().Wait();
 
 app.Run("http://localhost:45345");

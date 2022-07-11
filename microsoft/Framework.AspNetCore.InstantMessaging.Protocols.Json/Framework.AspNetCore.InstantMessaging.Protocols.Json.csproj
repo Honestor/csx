@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Framework.AspNetCore.InstantMessaging.Domain\Framework.AspNetCore.InstantMessaging.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

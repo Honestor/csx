@@ -19,7 +19,6 @@ namespace Framework.AspNetCore.SignalR
         public static ApplicationConfiguration UseAspNetCoreSignalR(this ApplicationConfiguration configuration)
         {
             configuration.AddModule(Assembly.GetExecutingAssembly().FullName);
-
             configuration.Container.AddConnections();
             configuration.Container.AddSignalR()
             .AddMessagePackProtocol();

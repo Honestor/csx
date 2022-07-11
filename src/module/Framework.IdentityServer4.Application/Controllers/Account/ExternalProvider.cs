@@ -8,11 +8,11 @@
         /// <summary>
         /// 名称
         /// </summary>
-        public string? DisplayName { get; set; }
+        public string DisplayName { get; set; }
 
         /// <summary>
         /// 认证方式
         /// </summary>
-        public string? AuthenticationScheme { get; set; }
+        public string AuthenticationScheme { get; set; }
     }
 }

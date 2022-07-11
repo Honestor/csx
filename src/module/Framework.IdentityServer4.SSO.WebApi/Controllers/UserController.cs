@@ -8,7 +8,7 @@ namespace Framework.IdentityServer4.SSO.WebApi
     public class UserController : ControllerBase
     {
         [Authorize]
-        public async Task<string> Get()
+        public string Get()
         {
             return "111";
         }

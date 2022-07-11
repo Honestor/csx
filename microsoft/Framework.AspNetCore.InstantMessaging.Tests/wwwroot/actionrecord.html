@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+    <input type="text" id="message" />
+    <input type="button" id="sendBtn" value="发送" />
+    <input type="button" id="joinGroup" value="加入聊天室" />
+    <script src="signalr.js"></script>
+    <script src="msgpack5.js"></script>
+    <script src="signalr-protocol-msgpack.js"></script>
+    <script src="jquery.min.js"></script>
+</body>
+<script type="text/javascript">
+    var name = '张三', group = 'phbb';
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chat?name=" + name)
+        .withAutomaticReconnect()
+        .withHubProtocol(new signalR.protocols.msgpack.MessagePackHubProtocol())
+        .build();
+
+    connection.start().then(function () {
+        $('#joinGroup').click(function () {
+            try {
+                connection.invoke("JoinGroupq", group, name);
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    }).catch(function (err) {
+        return console.error(err.toString());
+    });
+    connection.on("Send", function (message) {
+        debugger;
+    });
+</script>
+</html>

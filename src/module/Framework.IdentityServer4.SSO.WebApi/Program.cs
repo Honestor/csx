@@ -1,3 +1,5 @@
+using Framework.Consul.Client;
+using Framework.Core.Configurations;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,6 +41,12 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
         }
     };
 });
+
+builder.Services
+    .UseCore()
+    .UseConsulClient()
+    .LoadModules();
+
 var app = builder.Build();
 
 app.UseStaticFiles();
@@ -50,4 +58,4 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapDefaultControllerRoute();
 });
-app.Run();
+app.Run("http://localhost:5003");

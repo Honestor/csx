@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Framework.AspNetCore.InstantMessaging.Domain\Framework.AspNetCore.InstantMessaging.Domain.csproj" />
+    <ProjectReference Include="..\Framework.AspNetCore.InstantMessaging.Protocols.Json\Framework.AspNetCore.InstantMessaging.Protocols.Json.csproj" />
+    <ProjectReference Include="..\Framework.AspNetCore.InstantMessaging.Protocols.MessagePack\Framework.AspNetCore.InstantMessaging.Protocols.MessagePack.csproj" />
+  </ItemGroup>
+</Project>

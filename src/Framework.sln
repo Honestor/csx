@@ -197,25 +197,23 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdentityServer4.Storage", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.IdentityServer4.SSO.WebApi", "module\Framework.IdentityServer4.SSO.WebApi\Framework.IdentityServer4.SSO.WebApi.csproj", "{8743B360-A0D2-4479-AEC8-4F944B66F3EB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.IdentityServer4.SSO.WebApi1", "module\Framework.IdentityServer4.SSO.WebApi1\Framework.IdentityServer4.SSO.WebApi1.csproj", "{4BE4D0B4-7494-4FA7-9320-3A9D736E4AB2}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.GateWay.Yarp", "module\Framework.GateWay.Yarp\Framework.GateWay.Yarp.csproj", "{1AB721EA-0783-46E2-8A59-E7FE495FCE84}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.GateWay.Yarp.Application", "module\Framework.GateWay.Yarp.Application\Framework.GateWay.Yarp.Application.csproj", "{585F5934-3AF5-498E-9A6A-1516A2CBD8A2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "consule", "consule", "{FE97CEE2-37F0-4CB8-9B52-7CB13B5A03B3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Framework.Consul.Client.Test1", "module\Framework.Consul.Client.Test1\Framework.Consul.Client.Test1.csproj", "{E507D3F1-45EF-4EED-8538-343544C3689C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Consul.Client.Test1", "module\Framework.Consul.Client.Test1\Framework.Consul.Client.Test1.csproj", "{E507D3F1-45EF-4EED-8538-343544C3689C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Framework.Consul.Client", "module\Framework.Consul.Client\Framework.Consul.Client.csproj", "{A7C7ED16-A89E-4B81-A9D1-68A5B4966938}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Consul.Client", "module\Framework.Consul.Client\Framework.Consul.Client.csproj", "{A7C7ED16-A89E-4B81-A9D1-68A5B4966938}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "yarp", "yarp", "{03E1E6DE-0FBF-416E-B132-3805D5E5F0BC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ocelot", "ocelot", "{17927A05-B138-4764-A688-9BDE73670092}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Framework.GetWay.Ocelot.Application", "module\Framework.GetWay.Ocelot.Application\Framework.GetWay.Ocelot.Application.csproj", "{F3DB9407-1B49-4133-8EDB-4082928EF98B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.GetWay.Ocelot.Application", "module\Framework.GetWay.Ocelot.Application\Framework.GetWay.Ocelot.Application.csproj", "{F3DB9407-1B49-4133-8EDB-4082928EF98B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Framework.GetWay.Ocelot", "module\Framework.GetWay.Ocelot\Framework.GetWay.Ocelot.csproj", "{62C021F6-BA19-4F45-A843-77EBBF792633}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.GetWay.Ocelot", "module\Framework.GetWay.Ocelot\Framework.GetWay.Ocelot.csproj", "{62C021F6-BA19-4F45-A843-77EBBF792633}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ocelot", "module\Ocelot\Ocelot\Ocelot.csproj", "{2F1F6C1C-F230-438C-B9D4-BF826A90E124}"
 EndProject
@@ -915,14 +913,6 @@ Global
 		{8743B360-A0D2-4479-AEC8-4F944B66F3EB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8743B360-A0D2-4479-AEC8-4F944B66F3EB}.Release|x86.ActiveCfg = Release|Any CPU
 		{8743B360-A0D2-4479-AEC8-4F944B66F3EB}.Release|x86.Build.0 = Release|Any CPU
-		{4BE4D0B4-7494-4FA7-9320-3A9D736E4AB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4BE4D0B4-7494-4FA7-9320-3A9D736E4AB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4BE4D0B4-7494-4FA7-9320-3A9D736E4AB2}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{4BE4D0B4-7494-4FA7-9320-3A9D736E4AB2}.Debug|x86.Build.0 = Debug|Any CPU
-		{4BE4D0B4-7494-4FA7-9320-3A9D736E4AB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4BE4D0B4-7494-4FA7-9320-3A9D736E4AB2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4BE4D0B4-7494-4FA7-9320-3A9D736E4AB2}.Release|x86.ActiveCfg = Release|Any CPU
-		{4BE4D0B4-7494-4FA7-9320-3A9D736E4AB2}.Release|x86.Build.0 = Release|Any CPU
 		{1AB721EA-0783-46E2-8A59-E7FE495FCE84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1AB721EA-0783-46E2-8A59-E7FE495FCE84}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1AB721EA-0783-46E2-8A59-E7FE495FCE84}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -1086,7 +1076,6 @@ Global
 		{C8C8233E-FBB5-4AF8-B11B-037625EE3A3A} = {1C05AA62-1BA7-411F-BA85-063E6D57CA9C}
 		{2D29CF59-F487-41D6-9BC8-8369D320B323} = {1C05AA62-1BA7-411F-BA85-063E6D57CA9C}
 		{8743B360-A0D2-4479-AEC8-4F944B66F3EB} = {8762718E-A5AA-4987-B045-D3896ED10474}
-		{4BE4D0B4-7494-4FA7-9320-3A9D736E4AB2} = {8762718E-A5AA-4987-B045-D3896ED10474}
 		{1AB721EA-0783-46E2-8A59-E7FE495FCE84} = {03E1E6DE-0FBF-416E-B132-3805D5E5F0BC}
 		{585F5934-3AF5-498E-9A6A-1516A2CBD8A2} = {03E1E6DE-0FBF-416E-B132-3805D5E5F0BC}
 		{FE97CEE2-37F0-4CB8-9B52-7CB13B5A03B3} = {3004AF39-B426-45B8-B2B7-9CCA89A067A9}

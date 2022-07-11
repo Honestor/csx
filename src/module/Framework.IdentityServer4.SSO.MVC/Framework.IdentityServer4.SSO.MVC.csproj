@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Framework.Core\Framework.Core.csproj" />
+    <ProjectReference Include="..\Framework.Consul.Client\Framework.Consul.Client.csproj" />
   </ItemGroup>
 
   <ItemGroup>

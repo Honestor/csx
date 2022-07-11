@@ -86,12 +86,17 @@ namespace Ms.Oidc.Tests
             .AddCookie("Cookies")
             .AddOpenIdConnect("oidc", options =>
             {
-                options.Authority = "http://localhost:5001";
+                options.Authority = "http://localhost:45345/identityserver/";
                 options.RequireHttpsMetadata = false;
                 options.ClientId = "mvc";
                 options.ClientSecret = "secret";
                 options.ResponseType = "code";
                 options.SaveTokens = true;
+                options.Events.OnRedirectToIdentityProvider += (context) =>
+                {
+                    (context as RedirectContext).ProtocolMessage.RedirectUri = $"http://localhost:45345/mvc/signin-oidc";
+                    return Task.CompletedTask;
+                };
             });
             services.Configure<CookiePolicyOptions>(options =>
             {

@@ -46,7 +46,7 @@ namespace Framework.IdentityServer4.SSO.MVC
             .AddCookie("Cookies")
             .AddOpenIdConnect("oidc", options =>
             {
-                options.Authority = " http://localhost:45345/getway/";
+                options.Authority = " http://localhost:45345/identityserver/";
                 options.RequireHttpsMetadata = false;
                 options.ClientId = "mvc";
                 options.ClientSecret = "secret";

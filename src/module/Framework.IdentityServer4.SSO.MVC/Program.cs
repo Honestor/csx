@@ -1,3 +1,4 @@
+using Framework.Consul.Client;
 using Framework.Core.Configurations;
 using Framework.IdentityServer4.SSO.MVC;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 //配置应用程序
 builder.Services
     .UseCore()
+    .UseConsulClient()
     .UseApplication()
     .LoadModules();
 //配置应用程序结束

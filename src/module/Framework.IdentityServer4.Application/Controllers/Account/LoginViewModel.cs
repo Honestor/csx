@@ -30,6 +30,6 @@ namespace Framework.IdentityServer4.Application
         /// <summary>
         /// Íâ²¿µÇÂ¼scheme
         /// </summary>
-        public string? ExternalLoginScheme => IsExternalLoginOnly ? ExternalProviders?.SingleOrDefault()?.AuthenticationScheme : null;
+        public string ExternalLoginScheme => IsExternalLoginOnly ? ExternalProviders?.SingleOrDefault()?.AuthenticationScheme : null;
     }
 }

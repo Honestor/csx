@@ -1,6 +1,4 @@
 ﻿using Framework.Core.Configurations;
-using Framework.Core.Dependency;
-using Microsoft.Extensions.Configuration;
 using Ocelot.DependencyInjection;
 using Ocelot.Provider.Consul;
 using System.Reflection;
@@ -18,7 +16,6 @@ namespace Framework.GetWay.Ocelot
         {
             application
                 .AddOcelotWithConsul()
-                .ConfigOcelotWithConsul()
                 .AddModule(Assembly.GetExecutingAssembly().FullName);
             return application;
         }
@@ -33,21 +30,6 @@ namespace Framework.GetWay.Ocelot
             application.Container
                 .AddOcelot()
                 .AddConsul();
-            return application;
-        }
-
-
-        /// <summary>
-        /// 配置Ocelot、Consul组件
-        /// </summary>
-        /// <param name="application"></param>
-        /// <returns></returns>
-        public static ApplicationConfiguration ConfigOcelotWithConsul(this ApplicationConfiguration application)
-        {
-            application.Container.ReplaceConfiguration(ConfigurationHelper.BuildConfiguration(builderAction: builder =>
-            {
-                builder.AddJsonFile("ocelot.json", optional: true, reloadOnChange: true);
-            }));
             return application;
         }
     }

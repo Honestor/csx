@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\websocketclient.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\websocketclient.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Framework.AspNetCore.InstantMessaging.Protocols.MessagePack\Framework.AspNetCore.InstantMessaging.Protocols.MessagePack.csproj" />
+    <ProjectReference Include="..\Framework.AspNetCore.InstantMessaging\Framework.AspNetCore.InstantMessaging.Application.csproj" />
+  </ItemGroup>
+
+</Project>

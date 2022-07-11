@@ -8,6 +8,6 @@ namespace Framework.IdentityServer4.Application
         /// <summary>
         /// Ìø×ªurl
         /// </summary>
-        public string? RedirectUrl { get; set; }
+        public string RedirectUrl { get; set; }
     }
 }

@@ -52,10 +52,11 @@
              * */
             visit: function () {
                 param.userManager.getUser().then(function (user) {
-                    var url = "http://localhost:5003/api/user";
+                    var url = "http://localhost:45345/js/api/user";
                     var xhr = new XMLHttpRequest();
                     xhr.open("GET", url);
                     xhr.onload = function () {
+                        debugger;
                         var str = xhr.status+' '+JSON.parse(xhr.responseText);
                         alert(str);
                     }

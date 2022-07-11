@@ -2,6 +2,7 @@ using Framework.Consul.Client;
 using Framework.Core.Configurations;
 using Framework.IdentityServer4.Application;
 using Framework.IdentityServer4.Domain;
+using IdentityServer4.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
