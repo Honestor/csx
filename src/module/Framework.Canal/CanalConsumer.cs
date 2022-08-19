@@ -1,50 +1,47 @@
-﻿using CanalSharp.Protocol;
-using Framework.Core.Configurations;
+﻿using CanalSharp.Connections;
+using CanalSharp.Protocol;
 using Framework.Json;
-using Framework.Serilog;
-using Framework.Timing;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Framework.Canal.ConsoleTest
+namespace Framework.Canal
 {
-    internal class Program
+    public class CanalConsumer<T> where T:class,new()
     {
-        static Program()
+        private CanalConnectionFactory _connectionFactory;
+        private ILogger<CanalConsumer<T>> _logger;
+        private IJsonSerializer _jsonSerializer;
+
+        public CanalConsumer(CanalConnectionFactory connectionFactory, ILogger<CanalConsumer<T>> logger, IJsonSerializer jsonSerializer)
         {
-            new ServiceCollection()
-                .UseCore()
-                .UseSerilog()
-                .UseJson()
-                .UseTiming()
-                .UseCanal()
-                .LoadModules();
+            _connectionFactory = connectionFactory;
+            _logger = logger;
+            _jsonSerializer = jsonSerializer;
         }
 
-        static async Task Main(string[] args)
+        /// <summary>
+        /// 单机消费 not zookeeper集群
+        /// </summary>
+        /// <returns></returns>
+        public async Task ConsumeSingleAsync(string filter = ".*\\..*")
         {
-            var consumer = ApplicationConfiguration.Current.Provider.GetRequiredService<CanalConsumer<Test>>();
-            await consumer.ConsumeSingleAsync();
-            Console.ReadKey();
+            var connection = await _connectionFactory.CreateSingleAsync();
+            await connection.SubscribeAsync(filter);
+            while (true)
+            {
+                await SolveAsync(connection, await connection.GetAsync(1024));
+                await Task.Delay(300);
+            }
         }
 
-        public class Test
-        { 
-            public string id { get; set; }
-
-            public string object_id { get; set; }
-
-            public string room_name { get; set; }
-
-            public DateTime add_time { get; set; }
-
-            public long heart_rate { get; set; }
-        }
-
-        private static void PrintEntry(List<Entry> entries)
+        private async Task<List<TableChangeDetail<T>>> SolveAsync(SimpleCanalConnection connection, Message message) 
         {
-            var _logger = ApplicationConfiguration.Current.Provider.GetRequiredService<ILogger<Program>>();
-            foreach (var entry in entries)
+            var details = new List<TableChangeDetail<T>>();
+            foreach (var entry in message.Entries)
             {
                 if (entry.EntryType == EntryType.Transactionbegin || entry.EntryType == EntryType.Transactionend)
                 {
@@ -52,7 +49,6 @@ namespace Framework.Canal.ConsoleTest
                 }
 
                 RowChange rowChange = null;
-
                 try
                 {
                     rowChange = RowChange.Parser.ParseFrom(entry.StoreValue);
@@ -66,43 +62,44 @@ namespace Framework.Canal.ConsoleTest
                 {
                     EventType eventType = rowChange.EventType;
 
-                    _logger.LogInformation(
-                        $"================> binlog[{entry.Header.LogfileName}:{entry.Header.LogfileOffset}] , name[{entry.Header.SchemaName},{entry.Header.TableName}] , eventType :{eventType}");
+                    var detail = new TableChangeDetail<T>()
+                    {
+                        BinLogFileName = entry.Header.LogfileName,
+                        DatabaseName = entry.Header.SchemaName,
+                        TableName = entry.Header.TableName,
+                        EventType = eventType.ToString()
+                    };
 
                     foreach (var rowData in rowChange.RowDatas)
                     {
                         if (eventType == EventType.Delete)
                         {
-                            var result = GetJsonString(rowData.BeforeColumns.ToList());
-                            if (!string.IsNullOrEmpty(result))
-                            { 
-                                
-                            }
+                            //PrintColumn(rowData.BeforeColumns.ToList());
                         }
                         else if (eventType == EventType.Insert)
                         {
                             var result = GetJsonString(rowData.AfterColumns.ToList());
                             if (!string.IsNullOrEmpty(result))
                             {
-
+                                detail.Data=_jsonSerializer.Deserialize<T>(result);
                             }
                         }
                         else
                         {
-                            var result = GetJsonString(rowData.BeforeColumns.ToList());
-                            if (!string.IsNullOrEmpty(result))
-                            {
-
-                            }
+                            //_logger.LogInformation("-------> before");
+                            //PrintColumn(rowData.BeforeColumns.ToList());
+                            //_logger.LogInformation("-------> after");
+                            //PrintColumn(rowData.AfterColumns.ToList());
                         }
                     }
                 }
             }
+            return details;
         }
 
         private static string GetJsonString(List<Column> columns)
         {
-            var marksTypes = new List<string>() { "varchar","char","date","datetime", "timestamp","text","year" };
+            var marksTypes = new List<string>() { "varchar", "char", "date", "datetime", "timestamp", "text", "year" };
             var str = "{";
 
             foreach (var column in columns)
@@ -135,10 +132,11 @@ namespace Framework.Canal.ConsoleTest
             }
             if (str.Length > 1)
             {
-                var result=str.Substring(0, str.Length - 1);
+                var result = str.Substring(0, str.Length - 1);
                 return result += "}";
             }
-            else {
+            else
+            {
                 return string.Empty; ;
             }
         }

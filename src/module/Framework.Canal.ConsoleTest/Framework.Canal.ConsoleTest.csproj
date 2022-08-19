@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Framework.Core\Framework.Core.csproj" />
     <ProjectReference Include="..\..\Framework.Serilog\Framework.Serilog.csproj" />
+    <ProjectReference Include="..\..\Framework.Timing\Framework.Timing.csproj" />
     <ProjectReference Include="..\Framework.Canal\Framework.Canal.csproj" />
   </ItemGroup>
 

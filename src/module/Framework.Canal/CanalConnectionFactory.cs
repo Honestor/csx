@@ -21,12 +21,11 @@ namespace Framework.Canal
         /// </summary>
         /// <param name="filter">订阅的相关表 默认订阅所有的表</param>
         /// <returns></returns>
-        public async Task<SimpleCanalConnection> CreateSingleAsync(string filter= ".*\\..*")
+        public async Task<SimpleCanalConnection> CreateSingleAsync()
         {
             var options = new SimpleCanalOptions(_canalOptions.HostAdress, _canalOptions.Port, _canalOptions.Id) { UserName = _canalOptions.UserName??"canal", Password = _canalOptions.Password??"canal" };
             var conn = new SimpleCanalConnection(options, _loggerFactory.CreateLogger<SimpleCanalConnection>());
             await conn.ConnectAsync();
-            await conn.SubscribeAsync(filter);
             return conn;
         }
     }

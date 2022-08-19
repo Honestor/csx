@@ -1,6 +1,7 @@
 ﻿using Framework.Core.Configurations;
 using Framework.Core.Dependency;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Reflection;
 
 namespace Framework.Canal
@@ -28,6 +29,7 @@ namespace Framework.Canal
         public static ApplicationConfiguration ConfigModule(this ApplicationConfiguration application)
         {
             application.Container.Configure<CanalOptions>(application.Container.GetConfiguration().GetSection(nameof(CanalOptions)));
+            application.Container.TryAdd(ServiceDescriptor.Singleton(typeof(CanalConsumer<>), typeof(CanalConsumer<>)));
             return application;
         }
     }
