@@ -104,7 +104,13 @@ namespace Framework.AspNetCore.InstantMessaging.Domain
         private volatile bool _allowReconnect = true;
         internal bool AllowReconnect => _allowReconnect;
 
-        public virtual ClaimsPrincipal? User => Features.Get<IConnectionUserFeature>()?.User;
+        public virtual ClaimsPrincipal? User
+        {
+            get {
+                var f = Features.Get<IConnectionUserFeature>();
+                return f.User;
+            }
+        }
 
         /// <summary>
         /// ÎÕÊÖ
