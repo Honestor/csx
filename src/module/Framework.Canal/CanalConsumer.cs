@@ -33,7 +33,7 @@ namespace Framework.Canal
             await connection.SubscribeAsync(filter);
             while (true)
             {
-                await SolveAsync(connection, await connection.GetAsync(1024));
+                await SolveAsync(connection, await connection.GetWithoutAckAsync(1024));
                 await Task.Delay(300);
             }
         }
@@ -41,59 +41,64 @@ namespace Framework.Canal
         private async Task<List<TableChangeDetail<T>>> SolveAsync(SimpleCanalConnection connection, Message message) 
         {
             var details = new List<TableChangeDetail<T>>();
-            foreach (var entry in message.Entries)
+            try
             {
-                if (entry.EntryType == EntryType.Transactionbegin || entry.EntryType == EntryType.Transactionend)
+                foreach (var entry in message.Entries)
                 {
-                    continue;
-                }
-
-                RowChange rowChange = null;
-                try
-                {
-                    rowChange = RowChange.Parser.ParseFrom(entry.StoreValue);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e.ToString());
-                }
-
-                if (rowChange != null)
-                {
-                    EventType eventType = rowChange.EventType;
-
-                    var detail = new TableChangeDetail<T>()
+                    if (entry.EntryType == EntryType.Transactionbegin || entry.EntryType == EntryType.Transactionend)
                     {
-                        BinLogFileName = entry.Header.LogfileName,
-                        DatabaseName = entry.Header.SchemaName,
-                        TableName = entry.Header.TableName,
-                        EventType = eventType.ToString()
-                    };
+                        continue;
+                    }
 
-                    foreach (var rowData in rowChange.RowDatas)
+                    var rowChange = RowChange.Parser.ParseFrom(entry.StoreValue);
+
+                    if (rowChange != null)
                     {
-                        if (eventType == EventType.Delete)
+                        EventType eventType = rowChange.EventType;
+
+                        var detail = new TableChangeDetail<T>()
                         {
-                            //PrintColumn(rowData.BeforeColumns.ToList());
-                        }
-                        else if (eventType == EventType.Insert)
+                            BinLogFileName = entry.Header.LogfileName,
+                            DatabaseName = entry.Header.SchemaName,
+                            TableName = entry.Header.TableName,
+                            EventType = eventType.ToString()
+                        };
+
+                        foreach (var rowData in rowChange.RowDatas)
                         {
-                            var result = GetJsonString(rowData.AfterColumns.ToList());
-                            if (!string.IsNullOrEmpty(result))
+                            if (eventType == EventType.Delete)
                             {
-                                detail.Data=_jsonSerializer.Deserialize<T>(result);
+                                //PrintColumn(rowData.BeforeColumns.ToList());
+                            }
+                            else if (eventType == EventType.Insert)
+                            {
+                                var result = GetJsonString(rowData.AfterColumns.ToList());
+                                if (!string.IsNullOrEmpty(result))
+                                {
+                                    detail.Data = _jsonSerializer.Deserialize<T>(result);
+                                }
+                            }
+                            else
+                            {
+                                //_logger.LogInformation("-------> before");
+                                //PrintColumn(rowData.BeforeColumns.ToList());
+                                //_logger.LogInformation("-------> after");
+                                //PrintColumn(rowData.AfterColumns.ToList());
                             }
                         }
-                        else
-                        {
-                            //_logger.LogInformation("-------> before");
-                            //PrintColumn(rowData.BeforeColumns.ToList());
-                            //_logger.LogInformation("-------> after");
-                            //PrintColumn(rowData.AfterColumns.ToList());
-                        }
+
+                        details.Add(detail);
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                _logger.LogError($"数据映射失败,信息:{ex.Message},堆栈:{ex.StackTrace}");
+                await connection.RollbackAsync(message.Id);
+                details.Clear();
+            }
+            if(details.Count>0)
+                await connection.AckAsync(message.Id);
             return details;
         }
 

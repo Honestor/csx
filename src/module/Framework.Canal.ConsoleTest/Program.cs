@@ -5,6 +5,7 @@ using Framework.Serilog;
 using Framework.Timing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
 
 namespace Framework.Canal.ConsoleTest
 {
@@ -18,13 +19,14 @@ namespace Framework.Canal.ConsoleTest
                 .UseJson()
                 .UseTiming()
                 .UseCanal()
+                .UseApplication()
                 .LoadModules();
         }
 
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             var consumer = ApplicationConfiguration.Current.Provider.GetRequiredService<CanalConsumer<Test>>();
-            await consumer.ConsumeSingleAsync();
+            consumer.ConsumeSingleAsync("quzhou_baseasset.test").ConfigureAwait(false).GetAwaiter().GetResult();
             Console.ReadKey();
         }
 
