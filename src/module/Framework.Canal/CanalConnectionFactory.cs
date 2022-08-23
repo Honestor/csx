@@ -24,9 +24,9 @@ namespace Framework.Canal
         public async Task<SimpleCanalConnection> CreateSingleAsync()
         {
             var options = new SimpleCanalOptions(_canalOptions.HostAdress, _canalOptions.Port, _canalOptions.Id) { UserName = _canalOptions.UserName??"canal", Password = _canalOptions.Password??"canal" };
-            var conn = new SimpleCanalConnection(options, _loggerFactory.CreateLogger<SimpleCanalConnection>());
-            await conn.ConnectAsync();
-            return conn;
+            var connection = new SimpleCanalConnection(options, _loggerFactory.CreateLogger<SimpleCanalConnection>());
+            await connection.ConnectAsync();
+            return connection;
         }
     }
 }

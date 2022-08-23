@@ -30,10 +30,16 @@ namespace Framework.Canal
         {
             var connection = await _connectionFactory.CreateSingleAsync();
             await connection.SubscribeAsync(filter);
+            await connection.RollbackAsync(0);
             while (true)
             {
-                await SolveAsync(connection, await connection.GetWithoutAckAsync(1024));
-                await Task.Delay(300);
+                var message = await connection.GetWithoutAckAsync(1024);
+                if (message.Id == -1 || message.Entries.Count <= 0)
+                {
+                    await Task.Delay(300);
+                    continue;
+                }
+                var changeData=await SolveAsync(connection, message);
             }
         }
 
@@ -48,28 +54,29 @@ namespace Framework.Canal
                     {
                         continue;
                     }
-
                     var rowChange = RowChange.Parser.ParseFrom(entry.StoreValue);
-
                     if (rowChange != null)
                     {
                         EventType eventType = rowChange.EventType;
-
-                        var detail = new TableChangeDetail<T>()
-                        {
-                            BinLogFileName = entry.Header.LogfileName,
-                            DatabaseName = entry.Header.SchemaName,
-                            TableName = entry.Header.TableName,
-                            EventType = eventType.ToString()
-                        };
-
                         foreach (var rowData in rowChange.RowDatas)
                         {
+                            var detail = new TableChangeDetail<T>()
+                            {
+                                BinLogFileName = entry.Header.LogfileName,
+                                DatabaseName = entry.Header.SchemaName,
+                                TableName = entry.Header.TableName,
+                                LogfileOffset = entry.Header.LogfileOffset,
+                                EventType = eventType.ToString()
+                            };
                             if (eventType == EventType.Delete)
                             {
-                                //PrintColumn(rowData.BeforeColumns.ToList());
+                                var result = GetJsonString(rowData.BeforeColumns.ToList());
+                                if (!string.IsNullOrEmpty(result))
+                                {
+                                    detail.Data = _jsonSerializer.Deserialize<T>(result);
+                                }
                             }
-                            else if (eventType == EventType.Insert)
+                            if (eventType == EventType.Insert)
                             {
                                 var result = GetJsonString(rowData.AfterColumns.ToList());
                                 if (!string.IsNullOrEmpty(result))
@@ -77,27 +84,27 @@ namespace Framework.Canal
                                     detail.Data = _jsonSerializer.Deserialize<T>(result);
                                 }
                             }
-                            else
+                            if (eventType == EventType.Update)
                             {
-                                //_logger.LogInformation("-------> before");
-                                //PrintColumn(rowData.BeforeColumns.ToList());
-                                //_logger.LogInformation("-------> after");
-                                //PrintColumn(rowData.AfterColumns.ToList());
+                                var result = GetJsonString(rowData.AfterColumns.ToList());
+                                if (!string.IsNullOrEmpty(result))
+                                {
+                                    detail.Data = _jsonSerializer.Deserialize<T>(result);
+                                }
                             }
+                            details.Add(detail);
                         }
-
-                        details.Add(detail);
                     }
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError($"数据映射失败,信息:{ex.Message},堆栈:{ex.StackTrace}");
-                await connection.RollbackAsync(message.Id);
-                details.Clear();
             }
-            if(details.Count>0)
+            finally
+            {
                 await connection.AckAsync(message.Id);
+            }
             return details;
         }
 

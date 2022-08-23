@@ -13,6 +13,11 @@ namespace Framework.Canal
         public string BinLogFileName { get; set; }
 
         /// <summary>
+        /// 日志偏移
+        /// </summary>
+        public long LogfileOffset { get; set; }
+
+        /// <summary>
         /// 数据库
         /// </summary>
         public string DatabaseName { get; set; }

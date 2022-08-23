@@ -23,10 +23,10 @@ namespace Framework.Canal.ConsoleTest
                 .LoadModules();
         }
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             var consumer = ApplicationConfiguration.Current.Provider.GetRequiredService<CanalConsumer<Test>>();
-            consumer.ConsumeSingleAsync("quzhou_baseasset.test").ConfigureAwait(false).GetAwaiter().GetResult();
+            await consumer.ConsumeSingleAsync("quzhou_baseasset.test");
             Console.ReadKey();
         }
 
@@ -38,9 +38,9 @@ namespace Framework.Canal.ConsoleTest
 
             public string room_name { get; set; }
 
-            public DateTime add_time { get; set; }
+            public DateTime? add_time { get; set; }
 
-            public long heart_rate { get; set; }
+            public long? heart_rate { get; set; }
         }
 
         private static void PrintEntry(List<Entry> entries)

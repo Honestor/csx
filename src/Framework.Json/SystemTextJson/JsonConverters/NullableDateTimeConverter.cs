@@ -33,6 +33,16 @@ namespace Framework.Json.SystemTextJson.JsonConverters
                     {
                         return _clock.Normalize(d1);
                     }
+                    else {
+                        //默认的解析不了,试试扩展时间format
+                        foreach (var extraFormat in _options.ExtraDateTimeFormats)
+                        {
+                            if (DateTime.TryParseExact(s, extraFormat, CultureInfo.CurrentUICulture, DateTimeStyles.None, out var d6))
+                            {
+                                return _clock.Normalize(d6);
+                            }
+                        }
+                    }
 
                     throw new JsonException($"'{s}' can't parse to DateTime({_options.DefaultDateTimeFormat})!");
                 }
