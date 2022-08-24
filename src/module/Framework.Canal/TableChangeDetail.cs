@@ -5,7 +5,7 @@ namespace Framework.Canal
     /// <summary>
     /// 表变更细节
     /// </summary>
-    public class TableChangeDetail<T> where T : class,new()
+    public class TableChangeDetail<T> where T : TableChangeModelBase, new()
     {
         /// <summary>
         /// binlog 文件名称
@@ -26,11 +26,6 @@ namespace Framework.Canal
         /// 表名称
         /// </summary>
         public string TableName { get; set; }
-
-        /// <summary>
-        /// 事件名称
-        /// </summary>
-        public string EventType { get; set; }
 
         /// <summary>
         /// 变更数据

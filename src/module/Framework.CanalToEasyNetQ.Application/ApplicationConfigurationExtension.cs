@@ -1,21 +1,24 @@
-﻿using Framework.Core.Configurations;
+﻿using Framework.Canal.EasyNetQ.Configurations;
+using Framework.Core.Configurations;
+using Framework.Core.Dependency;
 using Framework.Json;
+using Framework.Serilog;
+using Framework.Timing;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Framework.Canal.ConsoleTest
+namespace Framework.CanalToEasyNetQ.Application
 {
     public static class ApplicationConfigurationExtension
     {
         /// <summary>
-        /// 启用Canal with EasyNetQ 组件
+        /// 启用Canal To EasyNetQ 组件
         /// </summary>
         /// <param name="application"></param>
         /// <returns></returns>
-        public static ApplicationConfiguration UseCanalEasyNetQ(this ApplicationConfiguration application)
+        public static ApplicationConfiguration UseApplication(this ApplicationConfiguration application)
         {
             application
-                .UseCanal()
                 .ConfigModule()
                 .AddModule(Assembly.GetExecutingAssembly().FullName);
             return application;
@@ -28,6 +31,8 @@ namespace Framework.Canal.ConsoleTest
             {
                 config.ExtraDateTimeFormats.Add("yyyy-MM-dd HH:mm:ss.ffffff");
             });
+
+            application.Container.Configure<CanalToEasyNetQOptions>(application.Container.GetConfiguration().GetSection(nameof(CanalToEasyNetQOptions)));
             return application;
         }
     }

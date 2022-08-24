@@ -25,8 +25,10 @@ namespace Framework.Canal.ConsoleTest
 
         static async Task Main(string[] args)
         {
-            var consumer = ApplicationConfiguration.Current.Provider.GetRequiredService<CanalConsumer<Test>>();
-            await consumer.ConsumeSingleAsync("quzhou_baseasset.test");
+            var consumer = ApplicationConfiguration.Current.Provider.GetRequiredService<CanalConsumerWithT<Test>>();
+            await consumer.ConsumeSingleAsync("quzhou_baseasset.test", result => { 
+            
+            });
             Console.ReadKey();
         }
 

@@ -1,51 +1,51 @@
 ﻿using CanalSharp.Connections;
 using CanalSharp.Protocol;
+using Framework.Core.Dependency;
 using Framework.Json;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Framework.Canal
 {
-    public class CanalConsumer<T> where T:class,new()
+    public class CanalConsumer:ISingleton
     {
         private CanalConnectionFactory _connectionFactory;
-        private ILogger<CanalConsumer<T>> _logger;
-        private IJsonSerializer _jsonSerializer;
+        private ILogger<CanalConsumer> _logger;
 
-        public CanalConsumer(CanalConnectionFactory connectionFactory, ILogger<CanalConsumer<T>> logger, IJsonSerializer jsonSerializer)
+        public CanalConsumer(CanalConnectionFactory connectionFactory, ILogger<CanalConsumer> logger)
         {
             _connectionFactory = connectionFactory;
             _logger = logger;
-            _jsonSerializer = jsonSerializer;
         }
 
-        /// <summary>
-        /// 单机消费 not zookeeper集群
-        /// </summary>
-        /// <returns></returns>
-        public async Task ConsumeSingleAsync(string filter = ".*\\..*")
+        public async Task ConsumeSingleAsync(string filter, Action<List<string>> callback, CancellationToken cancellationToken = default)
         {
             var connection = await _connectionFactory.CreateSingleAsync();
             await connection.SubscribeAsync(filter);
             await connection.RollbackAsync(0);
             while (true)
             {
+                if (cancellationToken.IsCancellationRequested)
+                    break;
                 var message = await connection.GetWithoutAckAsync(1024);
                 if (message.Id == -1 || message.Entries.Count <= 0)
                 {
                     await Task.Delay(300);
                     continue;
                 }
-                var changeData=await SolveAsync(connection, message);
+                var changeRows = await SolveAsync(connection, message);
+                if (changeRows.Count > 0)
+                    callback?.Invoke(changeRows);
             }
         }
 
-        private async Task<List<TableChangeDetail<T>>> SolveAsync(SimpleCanalConnection connection, Message message) 
+        private async Task<List<string>> SolveAsync(SimpleCanalConnection connection, Message message)
         {
-            var details = new List<TableChangeDetail<T>>();
+            var details = new List<string>();
             try
             {
                 foreach (var entry in message.Entries)
@@ -60,39 +60,30 @@ namespace Framework.Canal
                         EventType eventType = rowChange.EventType;
                         foreach (var rowData in rowChange.RowDatas)
                         {
-                            var detail = new TableChangeDetail<T>()
-                            {
-                                BinLogFileName = entry.Header.LogfileName,
-                                DatabaseName = entry.Header.SchemaName,
-                                TableName = entry.Header.TableName,
-                                LogfileOffset = entry.Header.LogfileOffset,
-                                EventType = eventType.ToString()
-                            };
                             if (eventType == EventType.Delete)
                             {
-                                var result = GetJsonString(rowData.BeforeColumns.ToList());
+                                var result = GetJsonString(rowData.BeforeColumns.ToList(), entry, eventType.ToString());
                                 if (!string.IsNullOrEmpty(result))
                                 {
-                                    detail.Data = _jsonSerializer.Deserialize<T>(result);
+                                    details.Add(result);
                                 }
                             }
                             if (eventType == EventType.Insert)
                             {
-                                var result = GetJsonString(rowData.AfterColumns.ToList());
+                                var result = GetJsonString(rowData.AfterColumns.ToList(), entry, eventType.ToString());
                                 if (!string.IsNullOrEmpty(result))
                                 {
-                                    detail.Data = _jsonSerializer.Deserialize<T>(result);
+                                    details.Add(result);
                                 }
                             }
                             if (eventType == EventType.Update)
                             {
-                                var result = GetJsonString(rowData.AfterColumns.ToList());
+                                var result = GetJsonString(rowData.AfterColumns.ToList(), entry, eventType.ToString());
                                 if (!string.IsNullOrEmpty(result))
                                 {
-                                    detail.Data = _jsonSerializer.Deserialize<T>(result);
+                                    details.Add(result);
                                 }
                             }
-                            details.Add(detail);
                         }
                     }
                 }
@@ -108,13 +99,20 @@ namespace Framework.Canal
             return details;
         }
 
-        private static string GetJsonString(List<Column> columns)
+        private static string GetJsonString(List<Column> columns, Entry entry,string eventType)
         {
             var marksTypes = new List<string>() { "varchar", "char", "date", "datetime", "timestamp", "text", "year" };
             var str = "{";
-
-            foreach (var column in columns)
+            str += $"\"BinLogFileName\":\"{entry.Header.LogfileName}\",";
+            str += $"\"DatabaseName\":\"{entry.Header.SchemaName}\",";
+            str += $"\"TableName\":\"{entry.Header.TableName}\",";
+            str += $"\"LogfileOffset\":\"{entry.Header.LogfileOffset}\",";
+            str += $"\"EventType\":\"{eventType}\",";
+            str += "\"Data\":{";
+           
+            for (var i=0;i<columns.Count;i++)
             {
+                var column = columns[i];
                 str += $"\"{column.Name}\":";
                 if (!string.IsNullOrEmpty(column.MysqlType))
                 {
@@ -139,17 +137,12 @@ namespace Framework.Canal
                         str += $"{column.Value}";
                     }
                 }
-                str += $",";
+                if(i!= columns.Count-1)
+                    str += $",";
+                else
+                    return str += "}";
             }
-            if (str.Length > 1)
-            {
-                var result = str.Substring(0, str.Length - 1);
-                return result += "}";
-            }
-            else
-            {
-                return string.Empty; ;
-            }
+            return str;
         }
     }
 }
