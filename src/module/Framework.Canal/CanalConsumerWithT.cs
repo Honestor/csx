@@ -1,4 +1,5 @@
-﻿using Framework.Json;
+﻿using Framework.Canal.Model;
+using Framework.Json;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;

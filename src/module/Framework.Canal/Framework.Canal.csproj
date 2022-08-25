@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Framework.Core\Framework.Core.csproj" />
     <ProjectReference Include="..\..\Framework.Json\Framework.Json.csproj" />
+    <ProjectReference Include="..\Framework.Canal.Model\Framework.Canal.Model.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿namespace Framework.Canal
+﻿namespace Framework.Canal.Model
 {
     public class TableChangeModelBase
     {

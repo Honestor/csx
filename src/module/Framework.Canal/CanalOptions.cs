@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Framework.Canal
+﻿namespace Framework.Canal
 {
     public class CanalOptions
     {

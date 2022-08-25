@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Framework.Core\Framework.Core.csproj" />
+    <ProjectReference Include="..\..\Framework.EasyNetQ\Framework.EasyNetQ.csproj" />
     <ProjectReference Include="..\..\Framework.Json\Framework.Json.csproj" />
     <ProjectReference Include="..\..\Framework.Serilog\Framework.Serilog.csproj" />
     <ProjectReference Include="..\..\Framework.Timing\Framework.Timing.csproj" />

@@ -1,6 +1,7 @@
 ﻿using Framework.Canal;
 using Framework.CanalToEasyNetQ.Application.Services;
 using Framework.Core.Configurations;
+using Framework.EasyNetQ;
 using Framework.Json;
 using Framework.Serilog;
 using Framework.Timing;
@@ -14,14 +15,22 @@ namespace Framework.CanalToEasyNetQ.Application
     {
         static Program()
         {
-            new ServiceCollection()
-                .UseCore()
-                .UseSerilog()
-                .UseJson()
-                .UseTiming()
-                .UseCanal()
-                .UseApplication()
-                .LoadModules();
+            try
+            {
+                new ServiceCollection()
+                        .UseCore()
+                        .UseSerilog()
+                        .UseJson()
+                        .UseTiming()
+                        .UseCanal()
+                        .UseEasyNetQ()
+                        .UseApplication()
+                        .LoadModules();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"框架启动异常,信息:{ex.Message},堆栈:{ex.StackTrace}");
+            }
         }
 
         static void Main(string[] args)

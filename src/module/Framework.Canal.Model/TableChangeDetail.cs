@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Framework.Canal
+﻿namespace Framework.Canal.Model
 {
     /// <summary>
     /// 表变更细节
