@@ -233,11 +233,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Canal.ConsoleTest
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.CanalToEasyNetQ.Application", "module\Framework.CanalToEasyNetQ.Application\Framework.CanalToEasyNetQ.Application.csproj", "{67068490-2191-494E-89C8-DF0EB00283D0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Framework.Canal.Model", "module\Framework.Canal.Model\Framework.Canal.Model.csproj", "{4B61173D-FFFC-42B9-9BCA-984160E039CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Canal.Model", "module\Framework.Canal.Model\Framework.Canal.Model.csproj", "{4B61173D-FFFC-42B9-9BCA-984160E039CE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.EasyNetQ", "Framework.EasyNetQ\Framework.EasyNetQ.csproj", "{1D30924E-4401-4733-9156-1486843E4328}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Framework.ElasticSearch.Nest.TestConsole", "module\Framework.ElasticSearch.Nest.TestConsole\Framework.ElasticSearch.Nest.TestConsole.csproj", "{F811986F-5404-4767-B26F-778FC914E372}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.ElasticSearch.Nest.TestConsole", "module\Framework.ElasticSearch.Nest.TestConsole\Framework.ElasticSearch.Nest.TestConsole.csproj", "{F811986F-5404-4767-B26F-778FC914E372}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
